@@ -9,4 +9,3 @@ document.addEventListener("DOMContentLoaded", () => {
   // redirigimos inmediatamente según el rol asignado.
   Auth.redirectByRole(session.role_id);
 });
-
