@@ -222,13 +222,24 @@ document.addEventListener("DOMContentLoaded", () => {
                   <span></span>
                 </button>
                 <div class="smart-menu__list" hidden>
-                  <button class="smart-menu__item" data-action="edit" data-id="${event.id}">Editar</button>
+                  <div class="smart-menu__split">
+                    <button class="smart-menu__item" data-action="view" data-id="${event.id}">Ver</button>
+                    <button
+                      type="button"
+                      class="smart-menu__icon-btn"
+                      data-action="edit"
+                      data-id="${event.id}"
+                      aria-label="Editar evento"
+                      title="Editar evento"
+                    >
+                      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M15.232 5.232a3 3 0 0 1 4.243 4.243l-9.193 9.192a1 1 0 0 1-.53.28l-4 0.8a1 1 0 0 1-1.18-1.18l0.8-4a1 1 0 0 1 .28-.53l9.193-9.193zm2.828 1.415a1 1 0 0 0-1.414 0L9 14.293V15h0.707l7.646-7.646a1 1 0 0 0 0-1.414zM7.586 16 7 18.414 9.414 17.828 9.999 17.242V16H7.586z"/>
+                      </svg>
+                    </button>
+                  </div>
                   <button class="smart-menu__item" data-action="attendance" data-id="${
                     event.id
                   }">Registrar asistencia</button>
-                  <button class="smart-menu__item" data-action="view" data-id="${
-                    event.id
-                  }">Ver</button>
                   <button class="smart-menu__item" data-action="acta" data-id="${
                     event.id
                   }">Acta PDF</button>

@@ -9,11 +9,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const eventsTableBody = document.getElementById("eventsTableBody");
   const eventSearch = document.getElementById("eventSearch");
   const clearFormBtn = document.getElementById("clearFormBtn");
+  const enableEditBtn = document.getElementById("enableEditBtn");
 
   const isAdmin = session.role_id === 1;
   const isUser = session.role_id === 2;
-  const canCreate = isAdmin || isUser;
-  const canEdit = isAdmin;
+  const canManage = isAdmin || isUser;
+  const canCreate = canManage;
+  const canEdit = canManage;
   const CLIENT_ID = 1;
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isViewMode = urlViewMode;
 
   const setViewMode = (enabled) => {
-    if (!canCreate) return;
+    if (!canManage) return;
     isViewMode = enabled;
     const fields = eventForm.querySelectorAll(
       "input, textarea, select, button[type='submit']"
@@ -50,6 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
       clearFormBtn.classList.add("hidden");
     } else if (clearFormBtn) {
       clearFormBtn.classList.remove("hidden");
+    }
+    if (enableEditBtn) {
+      if (enabled) {
+        enableEditBtn.classList.remove("hidden");
+      } else {
+        enableEditBtn.classList.add("hidden");
+      }
     }
   };
 
@@ -234,7 +243,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!canCreate) {
+    if (!canManage) {
       showMessage("No tienes permisos para gestionar eventos.", "error");
       return;
     }
@@ -309,7 +318,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  if (!canCreate) {
+    if (!canManage) {
     eventForm.querySelectorAll("input, button, textarea").forEach((el) => {
       if (el.id === "logoutBtn" || el === eventSearch) return;
       if (el.type !== "button") {
@@ -336,6 +345,17 @@ document.addEventListener("DOMContentLoaded", () => {
     resetForm();
     setViewMode(false);
   });
+
+  if (enableEditBtn) {
+    enableEditBtn.addEventListener("click", () => {
+      setViewMode(false);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("mode") === "view") {
+        url.searchParams.delete("mode");
+        window.history.replaceState({}, "", url.toString());
+      }
+    });
+  }
 
   fetchEvents();
 });
