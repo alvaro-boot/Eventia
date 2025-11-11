@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Eventos | Iniciar sesión</title>
+    <link rel="stylesheet" href="../../assets/styles/main.css" />
+  </head>
+  <body>
+    <main>
+      <section class="glass-card">
+        <div class="glass-header">
+          <span class="logo-brand">Eventia</span>
+          <p class="badge">Gestión integral de eventos y asistencia</p>
+        </div>
+
+        <form id="loginForm" autocomplete="off">
+          <div>
+            <label for="email">Correo electrónico</label>
+            <input type="email" id="email" name="email" placeholder="correo@empresa.com" required />
+          </div>
+          <div>
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="••••••••" required />
+          </div>
+          <p id="loginMessage" class="error hidden">Credenciales inválidas</p>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Ingresar</button>
+          </div>
+        </form>
+
+
+      </section>
+    </main>
+    <footer>© <span id="year"></span> Eventia • Plataforma de eventos</footer>
+
+    <script src="../../core/storage.js"></script>
+    <script src="../../core/api.js"></script>
+    <script src="../../core/auth.js"></script>
+  </body>
+</html>
+

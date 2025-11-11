@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro de asistencia | Eventia</title>
+    <link rel="stylesheet" href="../../assets/styles/main.css" />
+  </head>
+  <body>
+    <main>
+      <section class="glass-card">
+        <div class="glass-header">
+          <div>
+            <h1>Registro de asistencia</h1>
+            <p class="badge">Valida y registra asistentes en vivo</p>
+          </div>
+          <div class="actions">
+            <a class="btn btn-outline" href="../usuario/index.html">Volver al panel</a>
+            <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <section class="card-section">
+
+          <div class="attendance-toolbar glass-card">
+            <div class="event-selector">
+              <label for="attendanceEvent">Evento</label>
+              <select id="attendanceEvent">
+                <option value="">Cargando eventos...</option>
+              </select>
+            </div>
+            <div class="event-details">
+              <span class="event-details__label">Inicia en</span>
+              <span id="eventTimer" class="event-details__timer">—</span>
+            </div>
+            <button id="exportAttendance" class="btn btn-outline">Exportar lista</button>
+          </div>
+
+          <article class="glass-card" style="padding: 1.5rem">
+            <h2>Registrar nuevo asistente</h2>
+            <form id="attendanceForm">
+              <div class="flex">
+                <div style="flex: 1 1 200px">
+                  <label for="attendeeDocument">Número identificación</label>
+                  <input id="attendeeDocument" name="attendeeDocument" type="text" required />
+                </div>
+                <div style="flex: 1 1 200px">
+                  <label for="attendeeFirstName">Nombres</label>
+                  <input id="attendeeFirstName" name="attendeeFirstName" type="text" required />
+                </div>
+                <div style="flex: 1 1 200px">
+                  <label for="attendeeLastName">Apellidos</label>
+                  <input id="attendeeLastName" name="attendeeLastName" type="text" required />
+                </div>
+              </div>
+              <div class="flex">
+                <div style="flex: 1 1 220px">
+                  <label for="attendeeEmail">Correo electrónico</label>
+                  <input id="attendeeEmail" name="attendeeEmail" type="email" required />
+                </div>
+                <div style="flex: 1 1 220px">
+                  <label for="attendeePhone">Número celular</label>
+                  <input id="attendeePhone" name="attendeePhone" type="tel" required />
+                </div>
+              </div>
+              <div class="flex">
+                <div style="flex: 1 1 220px">
+                  <label for="attendeeRole">Cargo</label>
+                  <input id="attendeeRole" name="attendeeRole" type="text" required />
+                </div>
+                <div style="flex: 1 1 220px">
+                  <label for="attendeeCompany">Empresa</label>
+                  <input id="attendeeCompany" name="attendeeCompany" type="text" required />
+                </div>
+              </div>
+              <input type="hidden" id="attendeeGuest" name="attendeeGuest" value="0" />
+              <div>
+                <label for="signatureCanvas">Firma (opcional)</label>
+                <div class="signature-pad">
+                  <canvas id="signatureCanvas"></canvas>
+                </div>
+                <div class="signature-pad__actions">
+                  <span class="signature-hint">Firma directamente en el recuadro con el mouse o con el tacto.</span>
+                  <button type="button" id="signatureClearBtn" class="btn btn-outline">Limpiar firma</button>
+                </div>
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Registrar asistencia</button>
+              </div>
+            </form>
+          </article>
+
+          <article>
+            <div class="glass-header" style="margin-bottom: 1rem">
+              <h2>Lista de asistentes</h2>
+              <div class="search-box" style="min-width: 220px">
+                <input id="attendanceSearch" type="search" placeholder="Buscar por nombre o correo" />
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="m21 21-4.35-4.35m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Documento</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Estado</th>
+                    <th>Empresa</th>
+                    <th>Registrado</th>
+                  </tr>
+                </thead>
+                <tbody id="attendanceTableBody">
+                  <tr>
+                    <td colspan="5">Selecciona un evento para ver asistentes.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </section>
+      </section>
+    </main>
+    <footer>© <span id="year"></span> Eventia • Asistencias</footer>
+
+    <script src="../../core/storage.js"></script>
+    <script src="../../core/api.js"></script>
+    <script src="../../core/auth.js"></script>
+    <script src="./asistencia.js"></script>
+  </body>
+</html>
+

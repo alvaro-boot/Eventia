@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Usuario | Eventia</title>
+    <link rel="stylesheet" href="../../assets/styles/main.css" />
+  </head>
+  <body>
+    <main>
+      <section class="glass-card">
+        <div class="glass-header">
+          <div>
+            <h1>Panel de usuario</h1>
+            <p class="badge" id="userClientBadge"></p>
+          </div>
+          <div class="actions">
+            <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <div class="cards-grid">
+          <div class="stat-card">
+            <span>Eventos activos</span>
+            <strong id="activeEventsCount">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Asistencias registradas</span>
+            <strong id="assistancesCount">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Próximo evento</span>
+            <div id="nextEventInfo">
+              <strong>Sin eventos</strong>
+              <p class="timer">Crea un nuevo evento para comenzar</p>
+            </div>
+          </div>
+        </div>
+
+        <section class="glass-card" style="margin-top: 2rem; padding: 1.5rem">
+          <div class="glass-header" style="margin-bottom: 1rem">
+            <h2>Mis eventos recientes</h2>
+            <a class="btn btn-outline" href="../evento/index.html">Crear evento</a>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Lugar</th>
+                  <th>Patrocinador</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="userEventsTableBody">
+                <tr>
+                  <td colspan="7">No hay eventos registrados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+    <footer>© <span id="year"></span> Eventia • Usuario</footer>
+
+    <script src="../../core/storage.js"></script>
+    <script src="../../core/api.js"></script>
+    <script src="../../core/auth.js"></script>
+    <script src="./usuario.js"></script>
+  </body>
+</html>
+

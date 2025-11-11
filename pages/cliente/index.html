@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panel Cliente | Eventia</title>
+    <link rel="stylesheet" href="../../assets/styles/main.css" />
+  </head>
+  <body>
+    <main>
+      <section class="glass-card">
+        <div class="glass-header">
+          <div>
+            <h1>Panel de cliente</h1>
+            <p class="badge" id="clientCompanyBadge"></p>
+          </div>
+          <div class="actions">
+            <a class="btn btn-outline" href="../evento/index.html">Eventos</a>
+            <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
+          </div>
+        </div>
+
+        <article class="card-section">
+          <div class="glass-card" style="padding: 1.5rem">
+            <h2>Registrar usuario</h2>
+            <form id="userForm">
+              <div class="flex">
+                <div style="flex: 1 1 200px">
+                  <label for="userName">Nombre</label>
+                  <input id="userName" name="userName" type="text" required />
+                </div>
+                <div style="flex: 1 1 200px">
+                  <label for="userEmail">Correo</label>
+                  <input id="userEmail" name="userEmail" type="email" required />
+                </div>
+              </div>
+              <div class="flex">
+                <div style="flex: 1 1 200px">
+                  <label for="userPassword">Contraseña</label>
+                  <input id="userPassword" name="userPassword" type="text" placeholder="Generada automáticamente" readonly />
+                </div>
+                <div style="flex: 1 1 200px">
+                  <label for="userRole">Rol</label>
+                  <input id="userRole" name="userRole" type="text" value="usuario" disabled />
+                </div>
+              </div>
+              <p id="userMessage" class="success hidden"></p>
+              <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Crear usuario</button>
+              </div>
+            </form>
+          </div>
+
+          <div>
+            <div class="glass-header" style="margin-bottom: 1rem">
+              <h2>Usuarios registrados</h2>
+              <div class="search-box" style="min-width: 220px">
+                <input id="userSearch" type="search" placeholder="Buscar por nombre o correo" />
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="m21 21-4.35-4.35m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Eventos creados</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="userTableBody">
+                  <tr>
+                    <td colspan="4">No hay usuarios registrados</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="glass-header" style="margin-bottom: 1rem">
+              <h2>Eventos de mis usuarios</h2>
+              <span class="badge">Información consolidada</span>
+            </div>
+            <div id="clientEvents" class="list">
+              <div class="list-item">
+                <span>No hay eventos creados aún.</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+    <footer>© <span id="year"></span> Eventia • Cliente</footer>
+
+    <script src="../../core/storage.js"></script>
+    <script src="../../core/api.js"></script>
+    <script src="../../core/auth.js"></script>
+    <script src="./cliente.js"></script>
+  </body>
+</html>
+
