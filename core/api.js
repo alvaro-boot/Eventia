@@ -156,10 +156,10 @@ const API = (() => {
     });
 
   const listarAsistencia = (eventoId) =>
-    request(`/listar-asistencia/${eventoId}`);
+    request(`/v1/listar-asistencia/${eventoId}`);
 
   const buscarAsistencia = (eventoId, textoBuscado) =>
-    request(`/buscar-asistencia/${eventoId}`, {
+    request(`/v1/buscar-asistencia/${eventoId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -169,9 +169,16 @@ const API = (() => {
     });
 
   const registrarAsistencia = (eventoId, formData) =>
-    request(`/registrar-asistencia/${eventoId}`, {
+    request(`/v1/registrar-asistencia/${eventoId}`, {
       method: "POST",
       body: formData,
+    });
+
+  const actualizarEstadoAsistencia = (eventoId, asistenciaId, estado) =>
+    request(`/v1/actualizar-asistencia/${eventoId}/${asistenciaId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ asiste: Number(Boolean(estado)) }),
     });
 
   const descargarActaEvento = (eventoId) =>
@@ -191,6 +198,7 @@ const API = (() => {
     listarAsistencia,
     buscarAsistencia,
     registrarAsistencia,
+    actualizarEstadoAsistencia,
     descargarActaEvento,
   };
 })();

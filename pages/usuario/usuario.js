@@ -16,12 +16,25 @@ document.addEventListener("DOMContentLoaded", () => {
   let events = [];
   let clientName = "";
   const assistancesByEvent = new Map();
+  const adjustMenuPosition = (menu) => {
+    if (!menu) return;
+    menu.classList.remove("smart-menu__list--top");
+    const rect = menu.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.bottom > viewportHeight) {
+      menu.classList.add("smart-menu__list--top");
+    }
+  };
+
   const setMenuVisibility = (menu, visible) => {
     if (!menu) return;
     menu.hidden = !visible;
-    const toggle = menu
-      .closest(".smart-menu")
-      ?.querySelector("[data-menu-toggle]");
+    if (!visible) {
+      menu.classList.remove("smart-menu__list--top");
+    } else {
+      adjustMenuPosition(menu);
+    }
+    const toggle = menu.closest(".smart-menu")?.querySelector("[data-menu-toggle]");
     if (toggle) {
       toggle.setAttribute("aria-expanded", visible ? "true" : "false");
     }
@@ -209,6 +222,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   <span></span>
                 </button>
                 <div class="smart-menu__list" hidden>
+                  <button class="smart-menu__item" data-action="edit" data-id="${event.id}">Editar</button>
                   <button class="smart-menu__item" data-action="attendance" data-id="${
                     event.id
                   }">Registrar asistencia</button>

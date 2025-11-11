@@ -177,6 +177,12 @@ textarea:focus {
   transform: translateY(0);
 }
 
+.btn-small {
+  padding: 0.35rem 0.9rem;
+  font-size: 0.85rem;
+  border-radius: 14px;
+}
+
 .smart-menu {
   position: relative;
   display: inline-flex;
@@ -203,6 +209,11 @@ textarea:focus {
 
 .smart-menu__list[hidden] {
   display: none !important;
+}
+
+.smart-menu__list--top {
+  top: auto;
+  bottom: calc(100% + 0.5rem);
 }
 
 .smart-menu__item {
@@ -301,14 +312,15 @@ textarea:focus {
 
 .table-wrapper {
   overflow-x: auto;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.25);
+  border: 1px solid rgba(120, 132, 255, 0.15);
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 16px;
-  overflow: hidden;
+  background: transparent;
 }
 
 th,

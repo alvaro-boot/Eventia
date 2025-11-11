@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : cachedAssistances;
 
     if (!data.length) {
-      attendanceTableBody.innerHTML = `<tr><td colspan="6">No hay registros de asistencia.</td></tr>`;
+      attendanceTableBody.innerHTML = `<tr><td colspan="7">No hay registros de asistencia.</td></tr>`;
       return;
     }
 
@@ -303,6 +303,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const createdAt = assist.created_at ? new Date(assist.created_at).toLocaleString() : "—";
         const statusClass = assist.asiste ? "status-success" : "status-danger";
         const statusText = assist.asiste ? "Asistió" : "Pendiente";
+        const canToggle = isUser;
         return `
           <tr>
             <td>${assist.numero_identificacion}</td>
@@ -311,6 +312,17 @@ document.addEventListener("DOMContentLoaded", () => {
             <td><span class="tag ${statusClass}">${statusText}</span></td>
             <td>${assist.empresa}</td>
             <td>${createdAt}</td>
+            <td class="assist-actions">
+              ${
+                canToggle
+                  ? `<button class="btn btn-small ${assist.asiste ? "btn-outline" : "btn-primary"}" data-toggle-assist="${
+                      assist.id
+                    }" data-current="${assist.asiste ? "1" : "0"}">
+                      ${assist.asiste ? "Marcar como pendiente" : "Marcar asistencia"}
+                    </button>`
+                  : "—"
+              }
+            </td>
           </tr>
         `;
       })
@@ -470,6 +482,26 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   attendanceForm.addEventListener("submit", handleFormSubmit);
+  if (isUser && attendanceTableBody) {
+    attendanceTableBody.addEventListener("click", async (event) => {
+      const toggleBtn = event.target.closest("[data-toggle-assist]");
+      if (!toggleBtn) return;
+      const asistenciaId = Number(toggleBtn.dataset.toggleAssist);
+      const current = toggleBtn.dataset.current === "1";
+      if (!selectedEventId || !asistenciaId) return;
+      toggleBtn.disabled = true;
+      toggleBtn.textContent = current ? "Actualizando..." : "Registrando...";
+      try {
+        await API.actualizarEstadoAsistencia(selectedEventId, asistenciaId, !current);
+        await loadAssistances(attendanceSearch.value);
+      } catch (error) {
+        console.error("Error al actualizar asistencia", error);
+        showAlert(error.message || "No fue posible actualizar la asistencia.");
+      } finally {
+        toggleBtn.disabled = false;
+      }
+    });
+  }
   attendanceSearch.addEventListener("input", async (event) => {
     const value = event.target.value;
     if (value.trim().length >= 3 || !value.trim()) {
