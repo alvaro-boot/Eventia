@@ -1,7 +1,23 @@
 const Auth = (() => {
+  const getBasePath = () => {
+    const { pathname } = window.location;
+    if (pathname.includes("/pages/")) {
+      return pathname.substring(0, pathname.indexOf("/pages"));
+    }
+    if (pathname.endsWith("/index.html")) {
+      return pathname.substring(0, pathname.lastIndexOf("/index.html"));
+    }
+    return pathname.replace(/\/$/, "");
+  };
+
+  const buildUrl = (relativePath) => {
+    const base = getBasePath();
+    return `${window.location.origin}${base}${relativePath}`;
+  };
+
   const roleRoutes = {
-    1: "/src/pages/admin/index.html",
-    2: "/src/pages/usuario/index.html",
+    1: "/pages/admin/index.html",
+    2: "/pages/usuario/index.html",
   };
 
   const buildSession = (payload) => ({
@@ -33,9 +49,9 @@ const Auth = (() => {
   const redirectByRole = (roleId) => {
     const target = roleRoutes[roleId];
     if (target) {
-      window.location.href = target;
+      window.location.href = buildUrl(target);
     } else {
-      window.location.href = "/index.html";
+      window.location.href = buildUrl("/index.html");
     }
   };
 
@@ -43,7 +59,7 @@ const Auth = (() => {
     const session = Storage.getSession();
     const token = Storage.getToken();
     if (!session || !token) {
-      window.location.href = "/index.html";
+      window.location.href = buildUrl("/index.html");
       return null;
     }
     if (allowedRoles.length && !allowedRoles.includes(session.role_id)) {
@@ -55,7 +71,7 @@ const Auth = (() => {
 
   const logout = () => {
     Storage.clearSession();
-    window.location.href = "/index.html";
+    window.location.href = buildUrl("/index.html");
   };
 
   const bindLogout = (buttonId = "logoutBtn") => {
@@ -95,7 +111,8 @@ const Auth = (() => {
       } catch (error) {
         console.error("Error en login", error);
         if (message) {
-          message.textContent = error.message || "Credenciales inválidas. Intenta nuevamente.";
+          message.textContent =
+            error.message || "Credenciales inválidas. Intenta nuevamente.";
           message.classList.remove("hidden");
         }
       }
@@ -126,4 +143,3 @@ const Auth = (() => {
     bindLogout,
   };
 })();
-
