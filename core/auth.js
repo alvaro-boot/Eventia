@@ -1,7 +1,7 @@
 const Auth = (() => {
   const roleRoutes = {
-    1: "../admin/index.html",
-    2: "../usuario/index.html",
+    1: "/src/pages/admin/index.html",
+    2: "/src/pages/usuario/index.html",
   };
 
   const buildSession = (payload) => ({
@@ -35,7 +35,7 @@ const Auth = (() => {
     if (target) {
       window.location.href = target;
     } else {
-      window.location.href = "../login/index.html";
+      window.location.href = "/index.html";
     }
   };
 
@@ -43,7 +43,7 @@ const Auth = (() => {
     const session = Storage.getSession();
     const token = Storage.getToken();
     if (!session || !token) {
-      window.location.href = "../login/index.html";
+      window.location.href = "/index.html";
       return null;
     }
     if (allowedRoles.length && !allowedRoles.includes(session.role_id)) {
@@ -55,7 +55,7 @@ const Auth = (() => {
 
   const logout = () => {
     Storage.clearSession();
-    window.location.href = "../login/index.html";
+    window.location.href = "/index.html";
   };
 
   const bindLogout = (buttonId = "logoutBtn") => {

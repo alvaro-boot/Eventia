@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   const session = Storage.getSession();
   if (!session) {
-    window.location.href = "../login/index.html";
+    window.location.href = "/index.html";
     return;
   }
 
