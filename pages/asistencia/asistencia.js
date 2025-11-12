@@ -329,6 +329,44 @@ document.addEventListener("DOMContentLoaded", () => {
       .join("");
   };
 
+  const normalizeTime = (rawTime) => {
+    if (!rawTime) return "00:00";
+    const trimmed = rawTime.toString().trim();
+    const numericMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (numericMatch) {
+      const hours = String(numericMatch[1]).padStart(2, "0");
+      const minutes = String(numericMatch[2]).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    }
+
+    const cleaned = trimmed.toLowerCase().replace(/\./g, "").replace(/\s+/g, "");
+    const ampmMatch = cleaned.match(
+      /^(\d{1,2}):(\d{2})(?::(\d{2}))?(am|pm)$/
+    );
+    if (ampmMatch) {
+      let hours = Number(ampmMatch[1]);
+      const minutes = String(ampmMatch[2]).padStart(2, "0");
+      const isPm = ampmMatch[4] === "pm";
+      if (isPm && hours < 12) hours += 12;
+      if (!isPm && hours === 12) hours = 0;
+      return `${String(hours).padStart(2, "0")}:${minutes}`;
+    }
+
+    return "00:00";
+  };
+
+  const resolveEventDate = (event) => {
+    if (!event?.fecha) return null;
+    const datePart = event.fecha.split("T")[0];
+    const time = normalizeTime(event.hora_inicio);
+    const candidate = new Date(`${datePart}T${time}`);
+    if (!Number.isNaN(candidate.valueOf())) {
+      return candidate;
+    }
+    const fallback = new Date(event.fecha);
+    return Number.isNaN(fallback.valueOf()) ? null : fallback;
+  };
+
   const startTimer = () => {
     if (timerInterval) clearInterval(timerInterval);
     if (!eventTimer) return;
@@ -343,10 +381,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const eventDate = new Date(`${selectedEvent.fecha}T${selectedEvent.hora_inicio || "00:00"}`);
+    const eventDate = resolveEventDate(selectedEvent);
+    if (!eventDate) {
+      eventTimer.textContent = "Fecha u hora no disponible";
+      return;
+    }
 
     const updateTimer = () => {
       const diff = eventDate - new Date();
+      if (!Number.isFinite(diff)) {
+        eventTimer.textContent = "Fecha u hora no disponible";
+        if (timerInterval) clearInterval(timerInterval);
+        return;
+      }
       if (diff <= 0) {
         eventTimer.textContent = "Evento en curso o finalizado";
         clearInterval(timerInterval);
