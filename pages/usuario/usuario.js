@@ -87,12 +87,69 @@ document.addEventListener("DOMContentLoaded", () => {
     encargados: event.encargados,
   });
 
-  const parseEventDate = (event) => {
-    try {
-      return new Date(`${event.fecha}T${event.hora_inicio || "00:00"}`);
-    } catch (error) {
-      return new Date(event.fecha);
+  const normalizeTime = (rawTime) => {
+    if (!rawTime) return "00:00";
+    const trimmed = rawTime.toString().trim();
+    const numericMatch = trimmed.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+    if (numericMatch) {
+      const hours = String(numericMatch[1]).padStart(2, "0");
+      const minutes = String(numericMatch[2]).padStart(2, "0");
+      return `${hours}:${minutes}`;
     }
+
+    const cleaned = trimmed.toLowerCase().replace(/\./g, "").replace(/\s+/g, "");
+    const ampmMatch = cleaned.match(
+      /^(\d{1,2}):(\d{2})(?::(\d{2}))?(am|pm)$/
+    );
+    if (ampmMatch) {
+      let hours = Number(ampmMatch[1]);
+      const minutes = String(ampmMatch[2]).padStart(2, "0");
+      const isPm = ampmMatch[4] === "pm";
+      if (isPm && hours < 12) hours += 12;
+      if (!isPm && hours === 12) hours = 0;
+      return `${String(hours).padStart(2, "0")}:${minutes}`;
+    }
+
+    return "00:00";
+  };
+
+  const parseEventDate = (event) => {
+    if (!event?.fecha) return new Date(NaN);
+    const time = normalizeTime(event.hora_inicio);
+    const composed = `${event.fecha.split("T")[0]}T${time}`;
+    const parsed = new Date(composed);
+    if (!Number.isNaN(parsed.valueOf())) {
+      return parsed;
+    }
+    const fallback = new Date(event.fecha);
+    return Number.isNaN(fallback.valueOf()) ? new Date(NaN) : fallback;
+  };
+
+  const formatDateLabel = (eventDate, rawDate) => {
+    if (eventDate instanceof Date && !Number.isNaN(eventDate.valueOf())) {
+      return eventDate.toLocaleDateString("es-CO", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+    }
+    return rawDate || "Sin fecha definida";
+  };
+
+  const formatTimeLabel = (rawTime) => {
+    if (!rawTime) return "Sin hora";
+    const normalized = normalizeTime(rawTime);
+    const [hours, minutes] = normalized.split(":");
+    if (!hours || minutes === undefined) {
+      return rawTime;
+    }
+    const date = new Date();
+    date.setHours(Number(hours));
+    date.setMinutes(Number(minutes));
+    return date.toLocaleTimeString("es-CO", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const loadEvents = async () => {
@@ -157,9 +214,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     nextEventInfo.innerHTML = `
       <strong>${upcoming.nombre}</strong>
-      <p>${upcoming.fecha} • ${upcoming.hora_inicio || "00:00"} • ${
-      upcoming.empresa_patrocinadora || "Sin patrocinador"
-    }</p>
+      <p>${formatDateLabel(nextDate, upcoming.fecha)} • ${formatTimeLabel(
+      upcoming.hora_inicio
+    )} • ${upcoming.empresa_patrocinadora || "Sin patrocinador"}</p>
       <p>${upcoming.lugar || "Sin lugar definido"}</p>
       <p class="timer"></p>
     `;
@@ -167,6 +224,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const timerElement = nextEventInfo.querySelector(".timer");
     const updateTimer = () => {
       const diff = nextDate - new Date();
+      if (!Number.isFinite(diff)) {
+        timerElement.textContent = "Fecha u hora no disponible";
+        if (countdownInterval) clearInterval(countdownInterval);
+        return;
+      }
       if (diff <= 0) {
         timerElement.textContent = "En curso o finalizado";
         if (countdownInterval) clearInterval(countdownInterval);
