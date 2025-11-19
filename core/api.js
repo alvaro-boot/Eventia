@@ -120,7 +120,7 @@ const API = (() => {
       requiresAuth: false,
     });
 
-  const getClientes = () => request("/clientes");
+  const getClientes = () => request("/v1/clientes");
 
   const crearCliente = (data) =>
     request("/v1/clientes", {
