@@ -123,14 +123,14 @@ const API = (() => {
   const getClientes = () => request("/clientes");
 
   const crearCliente = (data) =>
-    request("/clientes", {
+    request("/v1/clientes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
 
   const actualizarCliente = (clienteId, data) =>
-    request(`/clientes/${clienteId}`, {
+    request(`/v1/clientes/${clienteId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -142,14 +142,14 @@ const API = (() => {
     request(`/listar-evento/${clienteId}/${eventoId}`);
 
   const crearEvento = (clienteId, data) =>
-    request(`/crear-evento/${clienteId}`, {
+    request(`/v1/crear-evento/${clienteId}`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: toUrlEncoded(data),
     });
 
   const actualizarEvento = (clienteId, eventoId, data) =>
-    request(`/actualizar-evento/${clienteId}/${eventoId}`, {
+    request(`/v1/actualizar-evento/${clienteId}/${eventoId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: toUrlEncoded(data),
@@ -182,7 +182,7 @@ const API = (() => {
     });
 
   const descargarActaEvento = (eventoId) =>
-    requestBlob(`/acta-evento/${eventoId}`, {
+    requestBlob(`/v1/acta-evento/${eventoId}`, {
       method: "GET",
     });
 
