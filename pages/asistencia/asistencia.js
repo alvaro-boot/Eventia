@@ -593,7 +593,13 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleBtn.disabled = true;
       toggleBtn.textContent = current ? "Actualizando..." : "Registrando...";
       try {
-        await API.actualizarEstadoAsistencia(selectedEventId, asistenciaId, !current);
+        if (current) {
+          // Si ya asistió, usar actualizarEstadoAsistencia para marcarlo como pendiente
+          await API.actualizarEstadoAsistencia(selectedEventId, asistenciaId, false);
+        } else {
+          // Si está pendiente, usar marcarLlegada para registrar la llegada
+          await API.marcarLlegada(selectedEventId, asistenciaId);
+        }
         await loadAssistances(attendanceSearch.value);
       } catch (error) {
         console.error("Error al actualizar asistencia", error);
