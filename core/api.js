@@ -136,10 +136,10 @@ const API = (() => {
       body: JSON.stringify(data),
     });
 
-  const listarEventos = (clienteId) => request(`/listar-eventos/${clienteId}`);
+  const listarEventos = (clienteId) => request(`/v1/listar-eventos/${clienteId}`);
 
   const listarEvento = (clienteId, eventoId) =>
-    request(`/listar-evento/${clienteId}/${eventoId}`);
+    request(`/v1/listar-evento/${clienteId}/${eventoId}`);
 
   const crearEvento = (clienteId, data) =>
     request(`/v1/crear-evento/${clienteId}`, {
