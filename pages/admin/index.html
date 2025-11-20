@@ -15,10 +15,55 @@
             <p class="badge">Gestiona clientes y sus accesos</p>
           </div>
           <div class="actions">
-            <a class="btn btn-outline" href="../evento/index.html">Eventos</a>
+            <a class="btn btn-outline" href="../evento/index.html">Crear evento</a>
             <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
           </div>
         </div>
+
+        <div class="cards-grid">
+          <div class="stat-card">
+            <span>Eventos activos</span>
+            <strong id="activeEventsCount">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Asistencias registradas</span>
+            <strong id="assistancesCount">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Próximo evento</span>
+            <div id="nextEventInfo">
+              <strong>Sin eventos</strong>
+              <p class="timer">Crea un nuevo evento para comenzar</p>
+            </div>
+          </div>
+        </div>
+
+        <section class="glass-card" style="margin-top: 2rem; padding: 1.5rem">
+          <div class="glass-header" style="margin-bottom: 1rem">
+            <h2>Eventos recientes</h2>
+            <a class="btn btn-outline" href="../evento/index.html">Crear evento</a>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Tipo</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Lugar</th>
+                  <th>Patrocinador</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="adminEventsTableBody">
+                <tr>
+                  <td colspan="7">No hay eventos registrados.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <article class="card-section">
           <div class="glass-card" style="padding: 1.5rem">
