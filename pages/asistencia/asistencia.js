@@ -136,6 +136,23 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+  const blobToBase64 = (blob) =>
+    new Promise((resolve) => {
+      if (!blob) {
+        resolve(null);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result;
+        // Remover el prefijo data:image/png;base64, si existe
+        const base64Data = base64.includes(",") ? base64.split(",")[1] : base64;
+        resolve(base64Data);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+
   const initSignaturePad = () => {
     if (!signatureCanvas) return;
     signatureCtx = signatureCanvas.getContext("2d");
@@ -447,6 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const signatureBlob =
       signatureCanvas && signatureIsDirty ? await getSignatureBlob() : null;
+    const isGuest = formValues.invitado === "1";
 
     const formData = new FormData();
     formData.append("evento_id", selectedEventId);
@@ -459,14 +477,50 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("cargo", formValues.cargo);
     formData.append("empresa", formValues.empresa);
     formData.append("invitado", formValues.invitado);
-    formData.append("asiste", "1");
+    
+    // Si es invitado, no marcamos como asistente inicialmente, se hará con marcarLlegada
+    if (!isGuest) {
+      formData.append("asiste", "1");
+    }
     formData.append("estado_id", "1");
-    if (signatureBlob) {
+    
+    // Si no es invitado, agregamos la firma al FormData
+    if (signatureBlob && !isGuest) {
       formData.append("firma", signatureBlob, `firma_${Date.now()}.png`);
     }
 
     try {
-      await API.registrarAsistencia(selectedEventId, formData);
+      // Registrar la asistencia primero
+      const response = await API.registrarAsistencia(selectedEventId, formData);
+      
+      // Si es invitado, usar marcarLlegada para registrar la llegada
+      if (isGuest) {
+        let asistenciaId = response?.id || response?.data?.id || response?.asistencia_id;
+        
+        // Si no obtenemos el ID de la respuesta, buscar en la lista recién actualizada
+        if (!asistenciaId) {
+          await loadAssistances(attendanceSearch.value);
+          // Buscar la asistencia recién creada por número de identificación y correo
+          const nuevaAsistencia = cachedAssistances.find(
+            (a) => 
+              a.numero_identificacion === formValues.numero_identificacion &&
+              a.correo_electronico === formValues.correo_electronico
+          );
+          if (nuevaAsistencia) {
+            asistenciaId = nuevaAsistencia.id;
+          }
+        }
+        
+        if (asistenciaId) {
+          const firmaBase64 = signatureBlob ? await blobToBase64(signatureBlob) : null;
+          await API.marcarLlegada(selectedEventId, asistenciaId, {
+            firma: firmaBase64,
+          });
+        } else {
+          console.warn("No se pudo obtener el ID de asistencia para marcar llegada");
+        }
+      }
+      
       attendanceForm.reset();
       clearSignature();
       await loadAssistances(attendanceSearch.value);

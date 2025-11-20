@@ -181,6 +181,23 @@ const API = (() => {
       body: JSON.stringify({ asiste: Number(Boolean(estado)) }),
     });
 
+  const marcarLlegada = (eventoId, asistenciaId, data = {}) => {
+    const body = {
+      evento: Number(eventoId),
+      id: Number(asistenciaId),
+    };
+
+    if (data.firma) {
+      body.firma = data.firma;
+    }
+
+    return request(`/v1/marcar-llegada/${eventoId}/${asistenciaId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  };
+
   const descargarActaEvento = (eventoId) =>
     requestBlob(`/v1/acta-evento/${eventoId}`, {
       method: "GET",
@@ -199,6 +216,7 @@ const API = (() => {
     buscarAsistencia,
     registrarAsistencia,
     actualizarEstadoAsistencia,
+    marcarLlegada,
     descargarActaEvento,
   };
 })();
