@@ -18,58 +18,56 @@ document.addEventListener("DOMContentLoaded", () => {
   const assistancesByEvent = new Map();
   const adjustMenuPosition = (menu) => {
     if (!menu) return;
-    const toggle = menu.closest(".smart-menu")?.querySelector("[data-menu-toggle]");
-    if (!toggle) return;
-
-    const toggleRect = toggle.getBoundingClientRect();
+    menu.classList.remove("smart-menu__list--top");
+    
+    // Primero mostrar el menú para calcular su tamaño
+    const wasHidden = menu.hidden;
+    menu.hidden = false;
+    
+    const menuRect = menu.getBoundingClientRect();
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
     const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
     
-    // Calcular posición
-    menu.style.position = "fixed";
-    menu.style.top = `${toggleRect.bottom + 8}px`;
-    menu.style.right = `${viewportWidth - toggleRect.right}px`;
-    menu.style.left = "auto";
-    menu.style.bottom = "auto";
-    
     // Verificar si el menú se sale por abajo
-    menu.hidden = false;
-    const menuRect = menu.getBoundingClientRect();
-    menu.hidden = true;
-    
     if (menuRect.bottom > viewportHeight) {
       // Mostrar arriba si no cabe abajo
-      menu.style.top = "auto";
-      menu.style.bottom = `${viewportHeight - toggleRect.top + 8}px`;
       menu.classList.add("smart-menu__list--top");
-    } else {
-      menu.classList.remove("smart-menu__list--top");
     }
     
-    // Ajustar si se sale por la derecha
+    // Verificar si se sale por la derecha
     if (menuRect.right > viewportWidth) {
-      menu.style.right = "8px";
+      menu.style.right = "0";
+      menu.style.left = "auto";
+    } else {
+      menu.style.right = "0";
       menu.style.left = "auto";
     }
     
-    // Ajustar si se sale por la izquierda
+    // Verificar si se sale por la izquierda
     if (menuRect.left < 0) {
-      menu.style.left = "8px";
+      menu.style.left = "0";
       menu.style.right = "auto";
+    }
+    
+    if (wasHidden) {
+      menu.hidden = true;
     }
   };
 
   const setMenuVisibility = (menu, visible) => {
     if (!menu) return;
-    menu.hidden = !visible;
     if (!visible) {
+      menu.hidden = true;
       menu.classList.remove("smart-menu__list--top");
-      menu.style.top = "";
       menu.style.right = "";
       menu.style.left = "";
-      menu.style.bottom = "";
     } else {
-      adjustMenuPosition(menu);
+      // Mostrar primero para calcular posición
+      menu.hidden = false;
+      // Pequeño delay para asegurar que el DOM esté actualizado antes de calcular
+      setTimeout(() => {
+        adjustMenuPosition(menu);
+      }, 10);
     }
     const toggle = menu.closest(".smart-menu")?.querySelector("[data-menu-toggle]");
     if (toggle) {
