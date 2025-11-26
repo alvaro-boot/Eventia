@@ -395,6 +395,20 @@ table {
   width: 100%;
   border-collapse: collapse;
   background: transparent;
+  table-layout: auto;
+}
+
+/* Clase para tablas responsivas */
+.table-responsive {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  width: 100%;
+  margin: 0;
 }
 
 th,
@@ -660,6 +674,17 @@ footer {
     justify-content: center;
   }
 
+  /* Ajustar glass-header con estilos inline */
+  .glass-header[style*="margin-bottom"] {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .glass-header[style*="margin-bottom"] .btn {
+    width: 100%;
+  }
+
   .form-actions {
     justify-content: stretch;
     flex-direction: column;
@@ -727,17 +752,62 @@ footer {
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
   }
 
   table {
     font-size: 0.85rem;
-    min-width: 600px;
+    min-width: 700px;
+    width: 100%;
   }
 
   th,
   td {
     padding: 0.75rem 0.5rem;
     white-space: nowrap;
+  }
+
+  /* Ocultar columnas menos importantes en móviles usando clase */
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Ajustar colspan cuando hay columnas ocultas en móviles */
+  table td[colspan="7"] {
+    display: table-cell;
+    text-align: center;
+  }
+
+  /* En móviles, mostrar solo 3 columnas visibles */
+  @media (max-width: 768px) {
+    table td[colspan="7"] {
+      /* Mantener el colspan pero ajustar visualmente */
+    }
+  }
+
+  /* Ajustar ancho de columnas visibles en móviles */
+  table th:first-child,
+  table td:first-child {
+    min-width: 150px;
+    max-width: 200px;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+
+  table th:nth-child(6),
+  table td:nth-child(6) {
+    min-width: 100px;
+    max-width: 130px;
+    white-space: normal;
+    word-wrap: break-word;
+  }
+
+  table th:last-child,
+  table td:last-child {
+    min-width: 70px;
+    width: 70px;
+    text-align: center;
   }
 
   .search-box {
@@ -765,7 +835,8 @@ footer {
   }
 
   /* Ajustar elementos con padding inline */
-  article.glass-card[style*="padding"] {
+  article.glass-card[style*="padding"],
+  .glass-card[style*="padding"] {
     padding: 1.25rem !important;
   }
 
@@ -778,6 +849,24 @@ footer {
   .flex select,
   .flex textarea {
     min-width: 0;
+  }
+
+  /* Ajustar estilos inline problemáticos */
+  .flex > div[style*="flex:"] {
+    flex: 1 1 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Mejorar el card-section */
+  .card-section {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Ajustar search-box con min-width */
+  .search-box[style*="min-width"] {
+    min-width: 100% !important;
+    width: 100% !important;
   }
 }
 
@@ -803,15 +892,38 @@ footer {
     font-size: 1.25rem;
   }
 
+  .table-wrapper {
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+  }
+
   table {
     font-size: 0.8rem;
-    min-width: 500px;
+    min-width: 600px;
   }
 
   th,
   td {
     padding: 0.5rem 0.4rem;
     font-size: 0.75rem;
+  }
+
+  table th:first-child,
+  table td:first-child {
+    min-width: 140px;
+    max-width: 180px;
+  }
+
+  table th:nth-child(6),
+  table td:nth-child(6) {
+    min-width: 90px;
+    max-width: 120px;
+  }
+
+  table th:last-child,
+  table td:last-child {
+    min-width: 60px;
+    width: 60px;
   }
 
   .stat-card strong {
