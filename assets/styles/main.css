@@ -289,6 +289,9 @@ textarea:focus {
   min-height: 180px;
   overflow: hidden;
   position: relative;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .signature-pad canvas {
@@ -296,6 +299,33 @@ textarea:focus {
   height: 220px;
   display: block;
   cursor: crosshair;
+  touch-action: none;
+}
+
+/* Mejoras para móviles */
+@media (max-width: 768px) {
+  .signature-pad {
+    min-height: 250px;
+    border-width: 2px;
+  }
+
+  .signature-pad canvas {
+    height: 280px;
+    cursor: pointer;
+  }
+
+  .signature-hint {
+    font-size: 0.9rem;
+  }
+
+  .signature-pad__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .signature-pad__actions .btn {
+    width: 100%;
+  }
 }
 
 .signature-pad__actions {

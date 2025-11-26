@@ -31,7 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const toArray = (payload, fallbackKey) => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload;
-    if (fallbackKey && Array.isArray(payload[fallbackKey])) return payload[fallbackKey];
+    if (fallbackKey && Array.isArray(payload[fallbackKey]))
+      return payload[fallbackKey];
     if (Array.isArray(payload.data)) return payload.data;
     if (Array.isArray(payload.result)) return payload.result;
     return [];
@@ -50,6 +51,14 @@ document.addEventListener("DOMContentLoaded", () => {
     signatureIsDirty = false;
   };
 
+  const isMobile = () => {
+    return (
+      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent
+      ) || window.innerWidth <= 768
+    );
+  };
+
   const updateSignatureCanvasSize = () => {
     if (!signatureCanvas) return;
     if (!signatureCtx) {
@@ -63,49 +72,74 @@ document.addEventListener("DOMContentLoaded", () => {
     signatureCtx.scale(ratio, ratio);
     signatureCtx.lineCap = "round";
     signatureCtx.lineJoin = "round";
-    signatureCtx.lineWidth = 2;
+    // Aumentar grosor de línea en móviles para mejor visibilidad
+    signatureCtx.lineWidth = isMobile() ? 4 : 2;
     signatureCtx.strokeStyle = "#4d6aff";
     clearSignature();
   };
 
   const getSignaturePoint = (event) => {
     const rect = signatureCanvas.getBoundingClientRect();
+    // Soporte para eventos táctiles y de puntero
+    const clientX = event.touches
+      ? event.touches[0].clientX
+      : event.clientX || event.pageX;
+    const clientY = event.touches
+      ? event.touches[0].clientY
+      : event.clientY || event.pageY;
     return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
+      x: clientX - rect.left,
+      y: clientY - rect.top,
     };
   };
 
-  const handleSignaturePointerDown = (event) => {
+  const handleSignatureStart = (event) => {
     if (!signatureCanvas || !signatureCtx) return;
     if (event.pointerType === "mouse" && event.button !== 0) return;
     event.preventDefault();
+    event.stopPropagation();
     try {
-      signatureCanvas.setPointerCapture(event.pointerId);
+      if (event.pointerId !== undefined) {
+        signatureCanvas.setPointerCapture(event.pointerId);
+      }
     } catch (error) {
       // El navegador puede no soportar pointer capture.
     }
     const point = getSignaturePoint(event);
+    // Configurar color de relleno para el punto inicial
+    signatureCtx.fillStyle = signatureCtx.strokeStyle;
+    signatureCtx.beginPath();
+    signatureCtx.moveTo(point.x, point.y);
+    // Dibujar un punto inicial para mejor respuesta en móviles
+    signatureCtx.arc(point.x, point.y, isMobile() ? 2 : 1, 0, 2 * Math.PI);
+    signatureCtx.fill();
     signatureCtx.beginPath();
     signatureCtx.moveTo(point.x, point.y);
     isSignatureDrawing = true;
+    signatureIsDirty = true;
   };
 
-  const handleSignaturePointerMove = (event) => {
+  const handleSignatureMove = (event) => {
     if (!isSignatureDrawing || !signatureCtx) return;
     event.preventDefault();
+    event.stopPropagation();
     const point = getSignaturePoint(event);
     signatureCtx.lineTo(point.x, point.y);
     signatureCtx.stroke();
     signatureIsDirty = true;
   };
 
-  const stopSignatureDrawing = (event) => {
+  const handleSignatureEnd = (event) => {
     if (!isSignatureDrawing || !signatureCtx) return;
     event.preventDefault();
+    event.stopPropagation();
     signatureCtx.closePath();
     isSignatureDrawing = false;
-    if (signatureCanvas && typeof signatureCanvas.releasePointerCapture === "function") {
+    if (
+      signatureCanvas &&
+      event.pointerId !== undefined &&
+      typeof signatureCanvas.releasePointerCapture === "function"
+    ) {
       try {
         signatureCanvas.releasePointerCapture(event.pointerId);
       } catch (error) {
@@ -121,10 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       if (typeof signatureCanvas.toBlob === "function") {
-        signatureCanvas.toBlob(
-          (blob) => resolve(blob),
-          "image/png"
-        );
+        signatureCanvas.toBlob((blob) => resolve(blob), "image/png");
       } else {
         try {
           const dataUrl = signatureCanvas.toDataURL("image/png");
@@ -159,11 +190,107 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!signatureCanvas) return;
     signatureCtx = signatureCanvas.getContext("2d");
     updateSignatureCanvasSize();
-    signatureCanvas.addEventListener("pointerdown", handleSignaturePointerDown);
-    signatureCanvas.addEventListener("pointermove", handleSignaturePointerMove);
-    signatureCanvas.addEventListener("pointerup", stopSignatureDrawing);
-    signatureCanvas.addEventListener("pointerleave", stopSignatureDrawing);
-    signatureCanvas.addEventListener("pointercancel", stopSignatureDrawing);
+
+    // Actualizar hint para móviles
+    const signatureHint = document.getElementById("signatureHint");
+    if (signatureHint && isMobile()) {
+      signatureHint.textContent =
+        "Toca y arrastra en el recuadro para firmar. Usa el dedo o un stylus.";
+    }
+
+    // Prevenir scroll y zoom en el canvas durante la firma
+    const preventDefault = (e) => {
+      if (e.touches && e.touches.length > 1) {
+        e.preventDefault(); // Prevenir zoom con dos dedos
+      }
+    };
+
+    signatureCanvas.addEventListener("touchstart", preventDefault, {
+      passive: false,
+    });
+
+    // Eventos de puntero (funciona para mouse y touch en navegadores modernos)
+    signatureCanvas.addEventListener("pointerdown", handleSignatureStart);
+    signatureCanvas.addEventListener("pointermove", handleSignatureMove);
+    signatureCanvas.addEventListener("pointerup", handleSignatureEnd);
+    signatureCanvas.addEventListener("pointerleave", handleSignatureEnd);
+    signatureCanvas.addEventListener("pointercancel", handleSignatureEnd);
+
+    // Eventos táctiles adicionales para mejor compatibilidad en móviles antiguos
+    signatureCanvas.addEventListener(
+      "touchstart",
+      (e) => {
+        if (e.touches.length === 1) {
+          e.preventDefault();
+          // Crear un objeto similar a un evento de puntero para compatibilidad
+          const touch = e.touches[0];
+          const fakeEvent = {
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            pageX: touch.pageX,
+            pageY: touch.pageY,
+            touches: e.touches,
+            pointerType: "touch",
+            button: 0,
+            preventDefault: () => e.preventDefault(),
+            stopPropagation: () => e.stopPropagation(),
+          };
+          handleSignatureStart(fakeEvent);
+        }
+      },
+      { passive: false }
+    );
+
+    signatureCanvas.addEventListener(
+      "touchmove",
+      (e) => {
+        if (e.touches.length === 1) {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const fakeEvent = {
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            pageX: touch.pageX,
+            pageY: touch.pageY,
+            touches: e.touches,
+            pointerType: "touch",
+            preventDefault: () => e.preventDefault(),
+            stopPropagation: () => e.stopPropagation(),
+          };
+          handleSignatureMove(fakeEvent);
+        }
+      },
+      { passive: false }
+    );
+
+    signatureCanvas.addEventListener(
+      "touchend",
+      (e) => {
+        e.preventDefault();
+        const fakeEvent = {
+          pointerType: "touch",
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation(),
+        };
+        handleSignatureEnd(fakeEvent);
+      },
+      { passive: false }
+    );
+
+    signatureCanvas.addEventListener(
+      "touchcancel",
+      (e) => {
+        e.preventDefault();
+        const fakeEvent = {
+          pointerType: "touch",
+          preventDefault: () => e.preventDefault(),
+          stopPropagation: () => e.stopPropagation(),
+        };
+        handleSignatureEnd(fakeEvent);
+      },
+      { passive: false }
+    );
+
     window.addEventListener("resize", updateSignatureCanvasSize);
     if (signatureClearBtn) {
       signatureClearBtn.addEventListener("click", (event) => {
@@ -191,7 +318,9 @@ document.addEventListener("DOMContentLoaded", () => {
       cachedClients = toArray(response, "clientes");
       if (!cachedClients.length) return null;
       if (session.role_id === 2) {
-        const matchByUser = cachedClients.find((client) => Number(client.user_id) === Number(session.id));
+        const matchByUser = cachedClients.find(
+          (client) => Number(client.user_id) === Number(session.id)
+        );
         clientId = matchByUser ? matchByUser.id : cachedClients[0].id;
       } else {
         clientId = cachedClients[0].id;
@@ -232,7 +361,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!currentClientId) {
       eventSelect.innerHTML = `<option value="">Sin eventos disponibles</option>`;
       eventSelect.disabled = true;
-      attendanceForm.querySelectorAll("input, button, select").forEach((el) => (el.disabled = true));
+      attendanceForm
+        .querySelectorAll("input, button, select")
+        .forEach((el) => (el.disabled = true));
       setSignatureEnabled(false);
       return;
     }
@@ -243,7 +374,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!cachedEvents.length) {
         eventSelect.innerHTML = `<option value="">Sin eventos disponibles</option>`;
         eventSelect.disabled = true;
-        attendanceForm.querySelectorAll("input, button, select").forEach((el) => (el.disabled = true));
+        attendanceForm
+          .querySelectorAll("input, button, select")
+          .forEach((el) => (el.disabled = true));
         setSignatureEnabled(false);
         return;
       }
@@ -255,7 +388,9 @@ document.addEventListener("DOMContentLoaded", () => {
         )
         .join("");
       eventSelect.disabled = false;
-      attendanceForm.querySelectorAll("input, button, select").forEach((el) => el.removeAttribute("disabled"));
+      attendanceForm
+        .querySelectorAll("input, button, select")
+        .forEach((el) => el.removeAttribute("disabled"));
       setSignatureEnabled(canRegisterAttendance);
 
       const storedEvent = pendingEventId
@@ -284,7 +419,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (searchTerm && searchTerm.trim().length >= 3) {
-        const response = await API.buscarAsistencia(selectedEventId, searchTerm.trim());
+        const response = await API.buscarAsistencia(
+          selectedEventId,
+          searchTerm.trim()
+        );
         cachedAssistances = toArray(response, "asistencias").map(mapAssistance);
       } else {
         const response = await API.listarAsistencia(selectedEventId);
@@ -303,11 +441,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const normalized = filter.trim().toLowerCase();
     const data = normalized
       ? cachedAssistances.filter((item) => {
-          const fullName = `${item.nombres || ""} ${item.apellidos || ""}`.toLowerCase();
+          const fullName = `${item.nombres || ""} ${
+            item.apellidos || ""
+          }`.toLowerCase();
           return (
-            String(item.numero_identificacion || "").toLowerCase().includes(normalized) ||
+            String(item.numero_identificacion || "")
+              .toLowerCase()
+              .includes(normalized) ||
             fullName.includes(normalized) ||
-            String(item.correo_electronico || "").toLowerCase().includes(normalized)
+            String(item.correo_electronico || "")
+              .toLowerCase()
+              .includes(normalized)
           );
         })
       : cachedAssistances;
@@ -319,7 +463,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     attendanceTableBody.innerHTML = data
       .map((assist) => {
-        const createdAt = assist.created_at ? new Date(assist.created_at).toLocaleString() : "—";
+        const createdAt = assist.created_at
+          ? new Date(assist.created_at).toLocaleString()
+          : "—";
         const statusClass = assist.asiste ? "status-success" : "status-danger";
         const statusText = assist.asiste ? "Asistió" : "Pendiente";
         const canToggle = canRegisterAttendance;
@@ -334,10 +480,16 @@ document.addEventListener("DOMContentLoaded", () => {
             <td class="assist-actions">
               ${
                 canToggle
-                  ? `<button class="btn btn-small ${assist.asiste ? "btn-outline" : "btn-primary"}" data-toggle-assist="${
-                      assist.id
-                    }" data-current="${assist.asiste ? "1" : "0"}">
-                      ${assist.asiste ? "Marcar como pendiente" : "Marcar asistencia"}
+                  ? `<button class="btn btn-small ${
+                      assist.asiste ? "btn-outline" : "btn-primary"
+                    }" data-toggle-assist="${assist.id}" data-current="${
+                      assist.asiste ? "1" : "0"
+                    }">
+                      ${
+                        assist.asiste
+                          ? "Marcar como pendiente"
+                          : "Marcar asistencia"
+                      }
                     </button>`
                   : "—"
               }
@@ -358,10 +510,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return `${hours}:${minutes}`;
     }
 
-    const cleaned = trimmed.toLowerCase().replace(/\./g, "").replace(/\s+/g, "");
-    const ampmMatch = cleaned.match(
-      /^(\d{1,2}):(\d{2})(?::(\d{2}))?(am|pm)$/
-    );
+    const cleaned = trimmed
+      .toLowerCase()
+      .replace(/\./g, "")
+      .replace(/\s+/g, "");
+    const ampmMatch = cleaned.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(am|pm)$/);
     if (ampmMatch) {
       let hours = Number(ampmMatch[1]);
       const minutes = String(ampmMatch[2]).padStart(2, "0");
@@ -394,7 +547,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const selectedEvent = cachedEvents.find((event) => Number(event.id) === Number(selectedEventId));
+    const selectedEvent = cachedEvents.find(
+      (event) => Number(event.id) === Number(selectedEventId)
+    );
     if (!selectedEvent) {
       eventTimer.textContent = "—";
       return;
@@ -429,7 +584,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const extractAttendanceForm = () => ({
-    numero_identificacion: document.getElementById("attendeeDocument").value.trim(),
+    numero_identificacion: document
+      .getElementById("attendeeDocument")
+      .value.trim(),
     nombres: document.getElementById("attendeeFirstName").value.trim(),
     apellidos: document.getElementById("attendeeLastName").value.trim(),
     correo_electronico: document.getElementById("attendeeEmail").value.trim(),
@@ -484,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Si es un invitado existente, solicitar firma (pero permitir omitir)
     let signatureBlob = null;
     let signatureBase64 = null;
-    
+
     if (signatureCanvas && signatureIsDirty) {
       signatureBlob = await getSignatureBlob();
       if (signatureBlob) {
@@ -517,7 +674,9 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         } catch (error) {
           console.error("Error al actualizar asistencia", error);
-          showAlert(error.message || "No fue posible actualizar la asistencia.");
+          showAlert(
+            error.message || "No fue posible actualizar la asistencia."
+          );
           return;
         }
       }
@@ -535,13 +694,13 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("cargo", formValues.cargo);
     formData.append("empresa", formValues.empresa);
     formData.append("invitado", formValues.invitado);
-    
+
     // Si no es invitado, marcamos como asistente
     if (!isGuest) {
       formData.append("asiste", "1");
     }
     formData.append("estado_id", "1");
-    
+
     // Agregar firma en base64 si existe (no como blob)
     if (signatureBase64) {
       formData.append("firma", signatureBase64);
@@ -550,17 +709,18 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // Registrar la asistencia primero
       const response = await API.registrarAsistencia(selectedEventId, formData);
-      
+
       // Si es invitado nuevo, usar marcarLlegada para registrar la llegada
       if (isGuest && !existingAttendee) {
-        let asistenciaId = response?.id || response?.data?.id || response?.asistencia_id;
-        
+        let asistenciaId =
+          response?.id || response?.data?.id || response?.asistencia_id;
+
         // Si no obtenemos el ID de la respuesta, buscar en la lista recién actualizada
         if (!asistenciaId) {
           await loadAssistances(attendanceSearch.value);
           // Buscar la asistencia recién creada por número de identificación y correo
           const nuevaAsistencia = cachedAssistances.find(
-            (a) => 
+            (a) =>
               a.numero_identificacion === formValues.numero_identificacion &&
               a.correo_electronico === formValues.correo_electronico
           );
@@ -568,16 +728,18 @@ document.addEventListener("DOMContentLoaded", () => {
             asistenciaId = nuevaAsistencia.id;
           }
         }
-        
+
         if (asistenciaId) {
           await API.marcarLlegada(selectedEventId, asistenciaId, {
             firma: signatureBase64,
           });
         } else {
-          console.warn("No se pudo obtener el ID de asistencia para marcar llegada");
+          console.warn(
+            "No se pudo obtener el ID de asistencia para marcar llegada"
+          );
         }
       }
-      
+
       attendanceForm.reset();
       clearSignature();
       await loadAssistances(attendanceSearch.value);
@@ -619,7 +781,11 @@ document.addEventListener("DOMContentLoaded", () => {
     ]);
 
     const csvContent = [header, ...rows]
-      .map((cols) => cols.map((col) => `"${String(col ?? "").replace(/"/g, '""')}"`).join(","))
+      .map((cols) =>
+        cols
+          .map((col) => `"${String(col ?? "").replace(/"/g, '""')}"`)
+          .join(",")
+      )
       .join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -648,21 +814,21 @@ document.addEventListener("DOMContentLoaded", () => {
       const asistenciaId = Number(toggleBtn.dataset.toggleAssist);
       const current = toggleBtn.dataset.current === "1";
       if (!selectedEventId || !asistenciaId) return;
-      
+
       // Si está marcando llegada (no está pendiente), verificar si es invitado y solicitar firma
       if (!current) {
-        const asistencia = cachedAssistances.find(a => a.id === asistenciaId);
+        const asistencia = cachedAssistances.find((a) => a.id === asistenciaId);
         if (asistencia && asistencia.invitado) {
           // Si es invitado, solicitar firma (pero permitir omitir)
           let signatureBase64 = null;
-          
+
           if (signatureCanvas && signatureIsDirty) {
             const signatureBlob = await getSignatureBlob();
             if (signatureBlob) {
               signatureBase64 = await blobToBase64(signatureBlob);
             }
           }
-          
+
           // Si no hay firma, preguntar si desea continuar sin firma
           if (!signatureBase64) {
             const continueWithoutSignature = confirm(
@@ -672,7 +838,7 @@ document.addEventListener("DOMContentLoaded", () => {
               return; // El usuario canceló
             }
           }
-          
+
           toggleBtn.disabled = true;
           toggleBtn.textContent = "Registrando...";
           try {
@@ -683,20 +849,26 @@ document.addEventListener("DOMContentLoaded", () => {
             await loadAssistances(attendanceSearch.value);
           } catch (error) {
             console.error("Error al actualizar asistencia", error);
-            showAlert(error.message || "No fue posible actualizar la asistencia.");
+            showAlert(
+              error.message || "No fue posible actualizar la asistencia."
+            );
           } finally {
             toggleBtn.disabled = false;
           }
           return;
         }
       }
-      
+
       toggleBtn.disabled = true;
       toggleBtn.textContent = current ? "Actualizando..." : "Registrando...";
       try {
         if (current) {
           // Si ya asistió, usar actualizarEstadoAsistencia para marcarlo como pendiente
-          await API.actualizarEstadoAsistencia(selectedEventId, asistenciaId, false);
+          await API.actualizarEstadoAsistencia(
+            selectedEventId,
+            asistenciaId,
+            false
+          );
         } else {
           // Si está pendiente y no es invitado, usar marcarLlegada sin firma
           await API.marcarLlegada(selectedEventId, asistenciaId);
