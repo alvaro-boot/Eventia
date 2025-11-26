@@ -18,6 +18,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const canEdit = canManage;
   const CLIENT_ID = 1;
 
+  // Configurar botón "Volver al panel" según el rol
+  const backToPanelBtn = document.getElementById("backToPanelBtn");
+  if (backToPanelBtn) {
+    if (isAdmin) {
+      backToPanelBtn.href = "../admin/index.html";
+    } else if (isUser) {
+      backToPanelBtn.href = "../usuario/index.html";
+    }
+  }
+
+  // Asegurar que el formulario esté habilitado para administradores y usuarios
+  if (eventForm && canManage) {
+    eventForm.querySelectorAll("input, textarea, select, button[type='submit']").forEach((el) => {
+      if (el.id === "logoutBtn" || el.id === "backToPanelBtn" || el.id === "enableEditBtn") return;
+      el.removeAttribute("disabled");
+    });
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const urlViewMode = urlParams.get("mode") === "view";
   let pendingEditId = sessionStorage.getItem("eventia:editEventId");
@@ -318,10 +336,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-    if (!canManage) {
+  if (!canManage && eventForm) {
     eventForm.querySelectorAll("input, button, textarea").forEach((el) => {
-      if (el.id === "logoutBtn" || el === eventSearch) return;
-      if (el.type !== "button") {
+      if (el.id === "logoutBtn" || el.id === "backToPanelBtn" || el.id === "enableEditBtn" || el === eventSearch) return;
+      if (el.type !== "button" && el.type !== "submit") {
         el.setAttribute("disabled", "true");
       }
     });

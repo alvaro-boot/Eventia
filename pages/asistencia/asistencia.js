@@ -13,7 +13,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const signatureCanvas = document.getElementById("signatureCanvas");
   const signatureClearBtn = document.getElementById("signatureClearBtn");
 
+  const isAdmin = session.role_id === 1;
   const isUser = session.role_id === 2;
+  const canRegisterAttendance = isAdmin || isUser;
   let pendingEventId = sessionStorage.getItem("eventia:attendanceEventId");
 
   let selectedEventId = null;
@@ -254,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .join("");
       eventSelect.disabled = false;
       attendanceForm.querySelectorAll("input, button, select").forEach((el) => el.removeAttribute("disabled"));
-      setSignatureEnabled(isUser);
+      setSignatureEnabled(canRegisterAttendance);
 
       const storedEvent = pendingEventId
         ? cachedEvents.find(
@@ -320,7 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const createdAt = assist.created_at ? new Date(assist.created_at).toLocaleString() : "—";
         const statusClass = assist.asiste ? "status-success" : "status-danger";
         const statusText = assist.asiste ? "Asistió" : "Pendiente";
-        const canToggle = isUser;
+        const canToggle = canRegisterAttendance;
         return `
           <tr>
             <td>${assist.numero_identificacion}</td>
@@ -437,11 +439,19 @@ document.addEventListener("DOMContentLoaded", () => {
     invitado: document.getElementById("attendeeGuest").value,
   });
 
+  const checkExistingAttendee = (documentNumber, email) => {
+    return cachedAssistances.find(
+      (a) =>
+        a.numero_identificacion === documentNumber ||
+        a.correo_electronico === email
+    );
+  };
+
   const handleFormSubmit = async (event) => {
     event.preventDefault();
     if (!selectedEventId) return;
-    if (!isUser) {
-      showAlert("Solo los usuarios pueden registrar asistencias.");
+    if (!canRegisterAttendance) {
+      showAlert("No tienes permisos para registrar asistencias.");
       return;
     }
 
@@ -462,10 +472,58 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const signatureBlob =
-      signatureCanvas && signatureIsDirty ? await getSignatureBlob() : null;
-    const isGuest = formValues.invitado === "1";
+    // Verificar si el asistente ya está registrado
+    const existingAttendee = checkExistingAttendee(
+      formValues.numero_identificacion,
+      formValues.correo_electronico
+    );
 
+    const isGuest = formValues.invitado === "1";
+    const isExistingGuest = existingAttendee && existingAttendee.invitado;
+
+    // Si es un invitado existente, solicitar firma (pero permitir omitir)
+    let signatureBlob = null;
+    let signatureBase64 = null;
+    
+    if (signatureCanvas && signatureIsDirty) {
+      signatureBlob = await getSignatureBlob();
+      if (signatureBlob) {
+        signatureBase64 = await blobToBase64(signatureBlob);
+      }
+    }
+
+    // Si es invitado existente y no hay firma, preguntar si desea continuar sin firma
+    if (isExistingGuest && !signatureBase64) {
+      const continueWithoutSignature = confirm(
+        "Este invitado ya está registrado. ¿Desea continuar sin firma? (Puede omitir la firma)"
+      );
+      if (!continueWithoutSignature) {
+        return; // El usuario canceló, no hacer nada
+      }
+    }
+
+    // Si es invitado existente y hay firma, o si es nuevo invitado, usar marcarLlegada
+    if (isExistingGuest || (isGuest && existingAttendee)) {
+      // Usar marcarLlegada para actualizar la asistencia existente
+      if (existingAttendee) {
+        try {
+          await API.marcarLlegada(selectedEventId, existingAttendee.id, {
+            firma: signatureBase64,
+          });
+          attendanceForm.reset();
+          clearSignature();
+          await loadAssistances(attendanceSearch.value);
+          showAlert("Asistencia actualizada correctamente.");
+          return;
+        } catch (error) {
+          console.error("Error al actualizar asistencia", error);
+          showAlert(error.message || "No fue posible actualizar la asistencia.");
+          return;
+        }
+      }
+    }
+
+    // Registrar nueva asistencia
     const formData = new FormData();
     formData.append("evento_id", selectedEventId);
     formData.append("user_id", session.id);
@@ -478,23 +536,23 @@ document.addEventListener("DOMContentLoaded", () => {
     formData.append("empresa", formValues.empresa);
     formData.append("invitado", formValues.invitado);
     
-    // Si es invitado, no marcamos como asistente inicialmente, se hará con marcarLlegada
+    // Si no es invitado, marcamos como asistente
     if (!isGuest) {
       formData.append("asiste", "1");
     }
     formData.append("estado_id", "1");
     
-    // Si no es invitado, agregamos la firma al FormData
-    if (signatureBlob && !isGuest) {
-      formData.append("firma", signatureBlob, `firma_${Date.now()}.png`);
+    // Agregar firma en base64 si existe (no como blob)
+    if (signatureBase64) {
+      formData.append("firma", signatureBase64);
     }
 
     try {
       // Registrar la asistencia primero
       const response = await API.registrarAsistencia(selectedEventId, formData);
       
-      // Si es invitado, usar marcarLlegada para registrar la llegada
-      if (isGuest) {
+      // Si es invitado nuevo, usar marcarLlegada para registrar la llegada
+      if (isGuest && !existingAttendee) {
         let asistenciaId = response?.id || response?.data?.id || response?.asistencia_id;
         
         // Si no obtenemos el ID de la respuesta, buscar en la lista recién actualizada
@@ -512,9 +570,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         if (asistenciaId) {
-          const firmaBase64 = signatureBlob ? await blobToBase64(signatureBlob) : null;
           await API.marcarLlegada(selectedEventId, asistenciaId, {
-            firma: firmaBase64,
+            firma: signatureBase64,
           });
         } else {
           console.warn("No se pudo obtener el ID de asistencia para marcar llegada");
@@ -524,6 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
       attendanceForm.reset();
       clearSignature();
       await loadAssistances(attendanceSearch.value);
+      showAlert("Asistencia registrada correctamente.");
     } catch (error) {
       console.error("Error al registrar asistencia", error);
       showAlert(error.message || "No fue posible registrar la asistencia.");
@@ -583,13 +641,56 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   attendanceForm.addEventListener("submit", handleFormSubmit);
-  if (isUser && attendanceTableBody) {
+  if (canRegisterAttendance && attendanceTableBody) {
     attendanceTableBody.addEventListener("click", async (event) => {
       const toggleBtn = event.target.closest("[data-toggle-assist]");
       if (!toggleBtn) return;
       const asistenciaId = Number(toggleBtn.dataset.toggleAssist);
       const current = toggleBtn.dataset.current === "1";
       if (!selectedEventId || !asistenciaId) return;
+      
+      // Si está marcando llegada (no está pendiente), verificar si es invitado y solicitar firma
+      if (!current) {
+        const asistencia = cachedAssistances.find(a => a.id === asistenciaId);
+        if (asistencia && asistencia.invitado) {
+          // Si es invitado, solicitar firma (pero permitir omitir)
+          let signatureBase64 = null;
+          
+          if (signatureCanvas && signatureIsDirty) {
+            const signatureBlob = await getSignatureBlob();
+            if (signatureBlob) {
+              signatureBase64 = await blobToBase64(signatureBlob);
+            }
+          }
+          
+          // Si no hay firma, preguntar si desea continuar sin firma
+          if (!signatureBase64) {
+            const continueWithoutSignature = confirm(
+              "Este asistente es un invitado. ¿Desea continuar sin firma? (Puede omitir la firma)"
+            );
+            if (!continueWithoutSignature) {
+              return; // El usuario canceló
+            }
+          }
+          
+          toggleBtn.disabled = true;
+          toggleBtn.textContent = "Registrando...";
+          try {
+            await API.marcarLlegada(selectedEventId, asistenciaId, {
+              firma: signatureBase64,
+            });
+            clearSignature();
+            await loadAssistances(attendanceSearch.value);
+          } catch (error) {
+            console.error("Error al actualizar asistencia", error);
+            showAlert(error.message || "No fue posible actualizar la asistencia.");
+          } finally {
+            toggleBtn.disabled = false;
+          }
+          return;
+        }
+      }
+      
       toggleBtn.disabled = true;
       toggleBtn.textContent = current ? "Actualizando..." : "Registrando...";
       try {
@@ -597,7 +698,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Si ya asistió, usar actualizarEstadoAsistencia para marcarlo como pendiente
           await API.actualizarEstadoAsistencia(selectedEventId, asistenciaId, false);
         } else {
-          // Si está pendiente, usar marcarLlegada para registrar la llegada
+          // Si está pendiente y no es invitado, usar marcarLlegada sin firma
           await API.marcarLlegada(selectedEventId, asistenciaId);
         }
         await loadAssistances(attendanceSearch.value);
@@ -623,13 +724,23 @@ document.addEventListener("DOMContentLoaded", () => {
     downloadCsv();
   });
 
-  if (!isUser) {
+  if (!canRegisterAttendance) {
     attendanceForm.querySelectorAll("input, button, select").forEach((el) => {
       if (el.type !== "button") {
         el.setAttribute("disabled", "true");
       }
     });
     setSignatureEnabled(false);
+  }
+
+  // Configurar botón "Volver al panel" según el rol
+  const backToPanelBtn = document.getElementById("backToPanelBtn");
+  if (backToPanelBtn) {
+    if (isAdmin) {
+      backToPanelBtn.href = "../admin/index.html";
+    } else if (isUser) {
+      backToPanelBtn.href = "../usuario/index.html";
+    }
   }
 
   loadEvents();
