@@ -357,10 +357,12 @@ textarea:focus {
   flex-direction: column;
   gap: 0.4rem;
   min-width: 220px;
+  flex: 1 1 auto;
 }
 
 .attendance-toolbar select {
   min-width: 220px;
+  width: 100%;
 }
 
 .attendance-toolbar .event-details {
@@ -369,6 +371,7 @@ textarea:focus {
   gap: 0.25rem;
   min-width: 140px;
   text-align: right;
+  flex: 0 0 auto;
 }
 
 .attendance-toolbar .event-details__label {
@@ -521,6 +524,8 @@ tr:last-child td {
 
 .search-box {
   position: relative;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .search-box input {
@@ -624,40 +629,209 @@ footer {
 
 @media (max-width: 768px) {
   body {
-    padding: 1.5rem;
+    padding: 1rem;
+  }
+
+  main {
+    gap: 1.5rem;
   }
 
   .glass-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 20px;
   }
 
   .glass-header {
     flex-direction: column;
     align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .glass-header .actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .glass-header .actions .btn,
+  .glass-header .actions a {
+    width: 100%;
+    justify-content: center;
   }
 
   .form-actions {
     justify-content: stretch;
+    flex-direction: column;
   }
 
   .btn,
   .form-actions .btn {
     width: 100%;
   }
-}
 
-@media (max-width: 480px) {
-  main {
-    gap: 1.5rem;
+  .flex {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .flex > * {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1.25rem;
+  }
+
+  .stat-card strong {
+    font-size: 1.5rem;
+  }
+
+  .attendance-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .attendance-toolbar .event-selector {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .attendance-toolbar select {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .attendance-toolbar .event-details {
+    min-width: auto;
+    text-align: left;
+    width: 100%;
+  }
+
+  .attendance-toolbar .event-details__timer {
+    font-size: 1.1rem;
+  }
+
+  .attendance-toolbar #exportAttendance {
+    width: 100%;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   table {
     font-size: 0.85rem;
+    min-width: 600px;
   }
 
   th,
   td {
-    padding: 0.65rem 0.75rem;
+    padding: 0.75rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .search-box input {
+    width: 100%;
+  }
+
+  .card-section {
+    gap: 1.5rem;
+  }
+
+  .smart-menu__list {
+    min-width: 160px;
+    right: auto;
+    left: 0;
+  }
+
+  .list-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  /* Ajustar elementos con padding inline */
+  article.glass-card[style*="padding"] {
+    padding: 1.25rem !important;
+  }
+
+  /* Asegurar que los inputs en flex no se desborden */
+  .flex > div {
+    min-width: 0;
+  }
+
+  .flex input,
+  .flex select,
+  .flex textarea {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  body {
+    padding: 0.75rem;
+  }
+
+  main {
+    gap: 1rem;
+  }
+
+  .glass-card {
+    padding: 1rem;
+    border-radius: 16px;
+  }
+
+  .glass-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .glass-header h2 {
+    font-size: 1.25rem;
+  }
+
+  table {
+    font-size: 0.8rem;
+    min-width: 500px;
+  }
+
+  th,
+  td {
+    padding: 0.5rem 0.4rem;
+    font-size: 0.75rem;
+  }
+
+  .stat-card strong {
+    font-size: 1.25rem;
+  }
+
+  .btn {
+    padding: 0.65rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+  }
+
+  label {
+    font-size: 0.85rem;
   }
 }
 
