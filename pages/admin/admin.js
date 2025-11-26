@@ -102,11 +102,44 @@ document.addEventListener("DOMContentLoaded", () => {
   // Funciones para eventos
   const adjustMenuPosition = (menu) => {
     if (!menu) return;
-    menu.classList.remove("smart-menu__list--top");
-    const rect = menu.getBoundingClientRect();
+    const toggle = menu.closest(".smart-menu")?.querySelector("[data-menu-toggle]");
+    if (!toggle) return;
+
+    const toggleRect = toggle.getBoundingClientRect();
     const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    if (rect.bottom > viewportHeight) {
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+    
+    // Calcular posición
+    menu.style.position = "fixed";
+    menu.style.top = `${toggleRect.bottom + 8}px`;
+    menu.style.right = `${viewportWidth - toggleRect.right}px`;
+    menu.style.left = "auto";
+    menu.style.bottom = "auto";
+    
+    // Verificar si el menú se sale por abajo
+    menu.hidden = false;
+    const menuRect = menu.getBoundingClientRect();
+    menu.hidden = true;
+    
+    if (menuRect.bottom > viewportHeight) {
+      // Mostrar arriba si no cabe abajo
+      menu.style.top = "auto";
+      menu.style.bottom = `${viewportHeight - toggleRect.top + 8}px`;
       menu.classList.add("smart-menu__list--top");
+    } else {
+      menu.classList.remove("smart-menu__list--top");
+    }
+    
+    // Ajustar si se sale por la derecha
+    if (menuRect.right > viewportWidth) {
+      menu.style.right = "8px";
+      menu.style.left = "auto";
+    }
+    
+    // Ajustar si se sale por la izquierda
+    if (menuRect.left < 0) {
+      menu.style.left = "8px";
+      menu.style.right = "auto";
     }
   };
 
@@ -115,6 +148,10 @@ document.addEventListener("DOMContentLoaded", () => {
     menu.hidden = !visible;
     if (!visible) {
       menu.classList.remove("smart-menu__list--top");
+      menu.style.top = "";
+      menu.style.right = "";
+      menu.style.left = "";
+      menu.style.bottom = "";
     } else {
       adjustMenuPosition(menu);
     }

@@ -55,6 +55,8 @@ main {
   padding: 2rem;
   width: 100%;
   box-sizing: border-box;
+  position: relative;
+  overflow: visible;
 }
 
 .glass-header {
@@ -193,23 +195,27 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 1;
 }
 
 .smart-menu__list {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  position: fixed;
+  top: auto;
+  right: auto;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   min-width: 180px;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.98);
   border: 1px solid rgba(77, 106, 255, 0.25);
   border-radius: 14px;
-  box-shadow: 0 16px 32px rgba(79, 104, 255, 0.25);
+  box-shadow: 0 16px 32px rgba(79, 104, 255, 0.35);
   backdrop-filter: blur(12px);
-  z-index: 10;
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
+  max-height: 80vh;
+  overflow-y: auto;
 }
 
 .smart-menu__list[hidden] {
@@ -217,8 +223,8 @@ textarea:focus {
 }
 
 .smart-menu__list--top {
-  top: auto;
-  bottom: calc(100% + 0.5rem);
+  top: auto !important;
+  bottom: auto !important;
 }
 
 .smart-menu__item {
@@ -391,9 +397,11 @@ textarea:focus {
 
 .table-wrapper {
   overflow-x: auto;
+  overflow-y: visible;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.25);
   border: 1px solid rgba(120, 132, 255, 0.15);
+  position: relative;
 }
 
 table {
@@ -886,6 +894,20 @@ footer {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    overflow: visible;
+  }
+
+  /* Asegurar que los contenedores no corten el menú en móviles */
+  .table-wrapper,
+  .glass-card,
+  section.glass-card,
+  article {
+    overflow: visible !important;
+  }
+
+  .table-wrapper {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
   }
 
   .glass-header {
@@ -1066,8 +1088,23 @@ footer {
 
   .smart-menu__list {
     min-width: 160px;
-    right: auto;
-    left: 0;
+    max-width: calc(100vw - 2rem);
+    right: auto !important;
+    left: auto !important;
+    z-index: 99999 !important;
+  }
+
+  /* Asegurar que los contenedores no corten el menú */
+  .table-wrapper,
+  .glass-card,
+  section.glass-card {
+    overflow: visible !important;
+  }
+
+  /* Solo permitir scroll horizontal en tablas */
+  .table-wrapper {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
   }
 
   .list-item {
