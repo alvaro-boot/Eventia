@@ -82,24 +82,52 @@ const API = (() => {
       options.body = body;
     }
 
-    const response = await fetch(buildUrl(path), options);
+    const url = buildUrl(path);
+    console.log(`[requestBlob] Solicitando: ${method} ${url}`);
+    
+    const response = await fetch(url, options);
+    
+    console.log(`[requestBlob] Respuesta recibida:`, {
+      status: response.status,
+      statusText: response.statusText,
+      contentType: response.headers.get("content-type"),
+      ok: response.ok
+    });
 
     if (!response.ok) {
       let message = response.statusText;
+      let errorDetails = null;
       try {
-        const errorPayload = await response.json();
-        message =
-          errorPayload?.mensaje ||
-          errorPayload?.message ||
-          errorPayload?.error ||
-          message;
+        // Intentar leer como texto primero para ver qué contiene
+        const text = await response.text();
+        console.log(`[requestBlob] Error response text:`, text);
+        try {
+          errorDetails = JSON.parse(text);
+          message =
+            errorDetails?.mensaje ||
+            errorDetails?.message ||
+            errorDetails?.error ||
+            message;
+        } catch (parseError) {
+          // Si no es JSON, usar el texto como mensaje
+          message = text || message;
+        }
       } catch (error) {
-        // ignore json parse errors
+        console.error("[requestBlob] Error al procesar respuesta de error:", error);
       }
-      throw new Error(message || "Error en la solicitud");
+      const finalError = new Error(message || `Error ${response.status}: ${response.statusText}`);
+      finalError.status = response.status;
+      finalError.details = errorDetails;
+      throw finalError;
     }
 
-    return response.blob();
+    const blob = await response.blob();
+    console.log(`[requestBlob] Blob creado:`, {
+      type: blob.type,
+      size: blob.size
+    });
+    
+    return blob;
   };
 
   const toUrlEncoded = (data = {}) => {
@@ -203,6 +231,16 @@ const API = (() => {
       method: "GET",
     });
 
+  const descargarListaAsistentesExcel = (eventoId) =>
+    requestBlob(`/v1/descargar-lista-asistentes/${eventoId}`, {
+      method: "GET",
+    });
+
+  const descargarInformeEventoPdf = (eventoId) =>
+    requestBlob(`/v1/informe-evento/${eventoId}`, {
+      method: "GET",
+    });
+
   return {
     login,
     getClientes,
@@ -218,5 +256,7 @@ const API = (() => {
     actualizarEstadoAsistencia,
     marcarLlegada,
     descargarActaEvento,
+    descargarListaAsistentesExcel,
+    descargarInformeEventoPdf,
   };
 })();

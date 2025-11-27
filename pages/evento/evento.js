@@ -18,14 +18,51 @@ document.addEventListener("DOMContentLoaded", () => {
   const canEdit = canManage;
   const CLIENT_ID = 1;
 
-  // Configurar botón "Volver al panel" según el rol
-  const backToPanelBtn = document.getElementById("backToPanelBtn");
-  if (backToPanelBtn) {
-    if (isAdmin) {
-      backToPanelBtn.href = "../admin/index.html";
-    } else if (isUser) {
-      backToPanelBtn.href = "../usuario/index.html";
-    }
+  // Menú hamburguesa
+  const menuToggle = document.getElementById("menuToggle");
+  const mainMenu = document.getElementById("mainMenu");
+  if (menuToggle && mainMenu) {
+    menuToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isHidden = mainMenu.hidden;
+      mainMenu.hidden = !isHidden;
+      menuToggle.setAttribute("aria-expanded", !isHidden);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!mainMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+        mainMenu.hidden = true;
+        menuToggle.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    mainMenu.addEventListener("click", (e) => {
+      const item = e.target.closest(".main-menu__item");
+      if (!item) return;
+
+      const action = item.dataset.action;
+      switch (action) {
+        case "edit-event":
+          setViewMode(false);
+          const url = new URL(window.location.href);
+          if (url.searchParams.get("mode") === "view") {
+            url.searchParams.delete("mode");
+            window.history.replaceState({}, "", url.toString());
+          }
+          break;
+        case "back-panel":
+          if (isAdmin) {
+            window.location.href = "../admin/index.html";
+          } else if (isUser) {
+            window.location.href = "../usuario/index.html";
+          }
+          break;
+        case "logout":
+          Auth.logout();
+          break;
+      }
+      mainMenu.hidden = true;
+    });
   }
 
   // Asegurar que el formulario esté habilitado para administradores y usuarios
@@ -71,11 +108,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (clearFormBtn) {
       clearFormBtn.classList.remove("hidden");
     }
-    if (enableEditBtn) {
+    const editMenuItem = mainMenu?.querySelector('[data-action="edit-event"]');
+    if (editMenuItem) {
       if (enabled) {
-        enableEditBtn.classList.remove("hidden");
+        editMenuItem.hidden = false;
       } else {
-        enableEditBtn.classList.add("hidden");
+        editMenuItem.hidden = true;
       }
     }
   };
@@ -364,16 +402,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setViewMode(false);
   });
 
-  if (enableEditBtn) {
-    enableEditBtn.addEventListener("click", () => {
-      setViewMode(false);
-      const url = new URL(window.location.href);
-      if (url.searchParams.get("mode") === "view") {
-        url.searchParams.delete("mode");
-        window.history.replaceState({}, "", url.toString());
-      }
-    });
-  }
 
   fetchEvents();
 });

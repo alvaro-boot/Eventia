@@ -8,123 +8,157 @@
   </head>
   <body>
     <main>
-      <section class="glass-card">
-        <div class="glass-header">
-          <div>
-            <h1>Registro de asistencia</h1>
-            <p class="badge">Valida y registra asistentes en vivo</p>
-          </div>
-          <div class="actions">
-            <a id="backToPanelBtn" class="btn btn-outline" href="#">Volver al panel</a>
-            <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
-          </div>
+      <div class="page-header">
+        <h1>Registro de asistencia</h1>
+        <button id="menuToggle" class="btn btn-icon menu-toggle" aria-label="Menú">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="main-menu" id="mainMenu" hidden>
+          <button class="main-menu__item" data-action="create-event">Crear evento</button>
+          <button class="main-menu__item" data-action="back-panel">Volver al panel</button>
+          <button class="main-menu__item" data-action="logout">Cerrar sesión</button>
         </div>
+      </div>
 
-        <section class="card-section">
+      <div class="event-info-bar">
+        <div class="event-info">
+          <span class="event-info__label">Evento:</span>
+          <span id="eventName" class="event-info__name">Cargando evento...</span>
+        </div>
+        <div class="event-actions-bar">
+          <button id="markArrivalModalBtn" class="btn btn-primary btn-small" disabled>Marcar llegada</button>
+          <button id="exportAttendance" class="btn btn-outline btn-small">Exportar lista</button>
+        </div>
+      </div>
 
-          <div class="attendance-toolbar glass-card">
-            <div class="event-selector">
-              <label for="attendanceEvent">Evento</label>
-              <select id="attendanceEvent">
-                <option value="">Cargando eventos...</option>
-              </select>
-            </div>
-            <div class="event-details">
-              <span class="event-details__label">Inicia en</span>
-              <span id="eventTimer" class="event-details__timer">—</span>
-            </div>
-            <button id="exportAttendance" class="btn btn-outline">Exportar lista</button>
-          </div>
+      <div class="attendance-content">
 
-          <article class="glass-card" style="padding: 1.5rem">
-            <h2>Registrar nuevo asistente</h2>
-            <form id="attendanceForm">
-              <div class="flex">
-                <div style="flex: 1 1 200px">
-                  <label for="attendeeDocument">Número identificación</label>
+        <section class="register-section">
+          <h2>Registrar nuevo asistente</h2>
+          <form id="attendanceForm" class="attendance-form-layout">
+            <div class="attendance-form-main">
+              <div class="attendance-form-fields">
+                <div class="form-field">
+                  <label for="attendeeDocument">* Número de Identidad</label>
                   <input id="attendeeDocument" name="attendeeDocument" type="text" required />
                 </div>
-                <div style="flex: 1 1 200px">
-                  <label for="attendeeFirstName">Nombres</label>
-                  <input id="attendeeFirstName" name="attendeeFirstName" type="text" required />
-                </div>
-                <div style="flex: 1 1 200px">
-                  <label for="attendeeLastName">Apellidos</label>
+                <div class="form-field">
+                  <label for="attendeeLastName">* Apellidos</label>
                   <input id="attendeeLastName" name="attendeeLastName" type="text" required />
                 </div>
-              </div>
-              <div class="flex">
-                <div style="flex: 1 1 220px">
-                  <label for="attendeeEmail">Correo electrónico</label>
-                  <input id="attendeeEmail" name="attendeeEmail" type="email" required />
+                <div class="form-field">
+                  <label for="attendeeFirstName">* Nombres</label>
+                  <input id="attendeeFirstName" name="attendeeFirstName" type="text" required />
                 </div>
-                <div style="flex: 1 1 220px">
-                  <label for="attendeePhone">Número celular</label>
-                  <input id="attendeePhone" name="attendeePhone" type="tel" required />
-                </div>
-              </div>
-              <div class="flex">
-                <div style="flex: 1 1 220px">
-                  <label for="attendeeRole">Cargo</label>
-                  <input id="attendeeRole" name="attendeeRole" type="text" required />
-                </div>
-                <div style="flex: 1 1 220px">
+                <div class="form-field">
                   <label for="attendeeCompany">Empresa</label>
-                  <input id="attendeeCompany" name="attendeeCompany" type="text" required />
+                  <input id="attendeeCompany" name="attendeeCompany" type="text" />
+                </div>
+                <div class="form-field">
+                  <label for="attendeePhone">Número Celular</label>
+                  <input id="attendeePhone" name="attendeePhone" type="tel" />
+                </div>
+                <div class="form-field">
+                  <label for="attendeeEmail">Correo Electronico</label>
+                  <input id="attendeeEmail" name="attendeeEmail" type="email" />
+                </div>
+                <div class="form-field">
+                  <label for="attendeeRole">Cargo</label>
+                  <input id="attendeeRole" name="attendeeRole" type="text" />
                 </div>
               </div>
               <input type="hidden" id="attendeeGuest" name="attendeeGuest" value="0" />
-              <div>
-                <label for="signatureCanvas">Firma (opcional)</label>
-                <div class="signature-pad">
-                  <canvas id="signatureCanvas"></canvas>
-                </div>
-                <div class="signature-pad__actions">
-                  <span class="signature-hint" id="signatureHint">Firma directamente en el recuadro con el mouse o con el tacto.</span>
-                  <button type="button" id="signatureClearBtn" class="btn btn-outline">Limpiar firma</button>
-                </div>
-              </div>
-              <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Registrar asistencia</button>
-              </div>
-            </form>
-          </article>
-
-          <article>
-            <div class="glass-header" style="margin-bottom: 1rem">
-              <h2>Lista de asistentes</h2>
-              <div class="search-box" style="min-width: 220px">
-                <input id="attendanceSearch" type="search" placeholder="Buscar por nombre o correo" />
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path d="m21 21-4.35-4.35m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </div>
             </div>
-
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Documento</th>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Estado</th>
-                    <th>Empresa</th>
-                    <th>Registrado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody id="attendanceTableBody">
-                  <tr>
-                    <td colspan="7">Selecciona un evento para ver asistentes.</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary" id="submitBtn">Registrar</button>
             </div>
-          </article>
+          </form>
+          <div id="loadingOverlay" class="loading-overlay" hidden>
+            <div class="loading-spinner"></div>
+            <p>Registrando asistencia...</p>
+          </div>
         </section>
-      </section>
+
+        <section class="list-section">
+          <div class="list-header">
+            <h2>Lista de asistentes</h2>
+            <div class="search-box search-box-compact">
+              <input id="attendanceSearch" type="search" placeholder="Buscar..." />
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="m21 21-4.35-4.35m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Documento</th>
+                  <th>Nombre Completo</th>
+                  <th>Correo</th>
+                  <th>Estado</th>
+                  <th>Empresa</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody">
+                <tr>
+                  <td colspan="6">Selecciona un evento para ver asistentes.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </main>
+
+    <!-- Modal para Marcar llegada -->
+    <div id="markArrivalModal" class="modal" hidden>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Marcar llegada</h2>
+          <button type="button" class="modal-close" id="closeMarkArrivalModal" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="attendance-form-main">
+            <div class="attendance-form-fields">
+              <div class="form-field">
+                <label for="selectAttendeeModal">Seleccionar asistente</label>
+                <select id="selectAttendeeModal">
+                  <option value="">Selecciona un asistente...</option>
+                </select>
+              </div>
+            </div>
+            <div class="attendance-form-signature">
+              <label for="signatureCanvasArrival">Firma (opcional)</label>
+              <div class="signature-pad">
+                <canvas id="signatureCanvasArrival"></canvas>
+              </div>
+              <div class="signature-pad__actions">
+                <span class="signature-hint">Firma directamente en el recuadro con el mouse o con el tacto.</span>
+                <button type="button" id="signatureClearBtnArrival" class="btn btn-outline btn-small">Limpiar firma</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelMarkArrivalBtn">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="markArrivalBtn" disabled>Marcar llegada</button>
+        </div>
+        <div id="loadingOverlayArrival" class="loading-overlay" hidden>
+          <div class="loading-spinner"></div>
+          <p>Marcando llegada...</p>
+        </div>
+      </div>
+    </div>
+
     <footer>© <span id="year"></span> Eventos C4A • Asistencias</footer>
 
     <script src="../../core/storage.js"></script>

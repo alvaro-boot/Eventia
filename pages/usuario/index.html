@@ -8,65 +8,251 @@
   </head>
   <body>
     <main>
-      <section class="glass-card">
-        <div class="glass-header">
-          <div>
-            <h1>Panel de usuario</h1>
-            <p class="badge" id="userClientBadge"></p>
-          </div>
-          <div class="actions">
-            <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
+      <div class="page-header">
+        <h1>Panel de usuario</h1>
+        <button id="menuToggle" class="btn btn-icon menu-toggle" aria-label="Menú">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="main-menu" id="mainMenu" hidden>
+          <button class="main-menu__item" data-action="create-event">Crear evento</button>
+          <button class="main-menu__item" data-action="logout">Cerrar sesión</button>
+        </div>
+      </div>
+
+      <section>
+        <div class="section-header">
+          <h2>Mis eventos recientes</h2>
+          <div class="event-actions">
+            <button id="viewEditEventBtn" class="btn btn-outline" disabled>Ver/Editar evento</button>
+            <button id="markArrivalModalBtn" class="btn btn-outline" disabled>Marcar llegada</button>
+            <button id="attendanceEventBtn" class="btn btn-outline" disabled>Registrar asistencia</button>
+            <button id="downloadExcelBtn" class="btn btn-outline" disabled>Descargar Excel</button>
+            <button id="generatePdfBtn" class="btn btn-outline" disabled>Generar PDF</button>
           </div>
         </div>
+        <div class="table-wrapper table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px;">
+                  <input type="radio" id="selectAllEvents" name="eventSelection" style="display: none;" />
+                </th>
+                <th>Nombre</th>
+                <th class="hide-mobile">Tipo</th>
+                <th class="hide-mobile">Fecha</th>
+                <th class="hide-mobile">Hora</th>
+                <th class="hide-mobile">Lugar</th>
+                <th>Patrocinador</th>
+              </tr>
+            </thead>
+            <tbody id="userEventsTableBody">
+              <tr>
+                <td colspan="7">No hay eventos registrados.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
 
-        <div class="cards-grid">
-          <div class="stat-card">
-            <span>Eventos activos</span>
-            <strong id="activeEventsCount">0</strong>
-          </div>
-          <div class="stat-card">
-            <span>Asistencias registradas</span>
-            <strong id="assistancesCount">0</strong>
-          </div>
-          <div class="stat-card">
-            <span>Próximo evento</span>
-            <div id="nextEventInfo">
-              <strong>Sin eventos</strong>
-              <p class="timer">Crea un nuevo evento para comenzar</p>
+    <!-- Modal para Marcar llegada -->
+    <div id="markArrivalModal" class="modal" hidden>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Marcar llegada</h2>
+          <button type="button" class="modal-close" id="closeMarkArrivalModal" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="attendance-form-main">
+            <div class="attendance-form-fields">
+              <div class="form-field">
+                <label for="selectAttendeeModal">Seleccionar asistente</label>
+                <select id="selectAttendeeModal">
+                  <option value="">Selecciona un asistente...</option>
+                </select>
+              </div>
+            </div>
+            <div class="attendance-form-signature">
+              <label for="signatureCanvasArrival">Firma (opcional)</label>
+              <div class="signature-pad">
+                <canvas id="signatureCanvasArrival"></canvas>
+              </div>
+              <div class="signature-pad__actions">
+                <span class="signature-hint">Firma directamente en el recuadro con el mouse o con el tacto.</span>
+                <button type="button" id="signatureClearBtnArrival" class="btn btn-outline btn-small">Limpiar firma</button>
+              </div>
             </div>
           </div>
         </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelMarkArrivalBtn">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="markArrivalBtn" disabled>Marcar llegada</button>
+        </div>
+        <div id="loadingOverlayArrival" class="loading-overlay" hidden>
+          <div class="loading-spinner"></div>
+          <p>Marcando llegada...</p>
+        </div>
+      </div>
+    </div>
 
-        <section class="glass-card" style="margin-top: 2rem; padding: 1.5rem">
-          <div class="glass-header" style="margin-bottom: 1rem">
-            <h2>Mis eventos recientes</h2>
-            <a class="btn btn-outline" href="../evento/index.html">Crear evento</a>
-          </div>
-          <div class="table-wrapper table-responsive">
-            <table>
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th class="hide-mobile">Tipo</th>
-                  <th class="hide-mobile">Fecha</th>
-                  <th class="hide-mobile">Hora</th>
-                  <th class="hide-mobile">Lugar</th>
-                  <th>Patrocinador</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="userEventsTableBody">
-                <tr>
-                  <td colspan="7">No hay eventos registrados.</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-      </section>
-    </main>
+    <!-- Modal para Registrar asistencia -->
+    <div id="registerAttendanceModal" class="modal" hidden>
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2>Registrar nuevo asistente</h2>
+          <button type="button" class="modal-close" id="closeRegisterAttendanceModal" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="attendanceFormModal" class="attendance-form-layout">
+            <div class="attendance-form-main">
+              <div class="attendance-form-fields">
+                <div class="form-fields-column form-fields-left">
+                  <div class="form-field">
+                    <label for="attendeeDocumentModal">* Número de Identidad</label>
+                    <input id="attendeeDocumentModal" name="attendeeDocument" type="text" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="attendeeFirstNameModal">* Nombres</label>
+                    <input id="attendeeFirstNameModal" name="attendeeFirstName" type="text" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="attendeePhoneModal">Número Celular</label>
+                    <input id="attendeePhoneModal" name="attendeePhone" type="tel" />
+                  </div>
+                  <div class="form-field">
+                    <label for="attendeeEmailModal">Correo Electronico</label>
+                    <input id="attendeeEmailModal" name="attendeeEmail" type="email" />
+                  </div>
+                  <div class="form-field">
+                    <label for="attendeeRoleModal">Cargo</label>
+                    <input id="attendeeRoleModal" name="attendeeRole" type="text" />
+                  </div>
+                </div>
+                <div class="form-fields-column form-fields-right">
+                  <div class="form-field">
+                    <label for="attendeeLastNameModal">* Apellidos</label>
+                    <input id="attendeeLastNameModal" name="attendeeLastName" type="text" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="attendeeCompanyModal">Empresa</label>
+                    <input id="attendeeCompanyModal" name="attendeeCompany" type="text" />
+                  </div>
+                </div>
+              </div>
+              <div class="attendance-form-signature">
+                <label for="signatureCanvasRegister">Firma (opcional)</label>
+                <div class="signature-pad">
+                  <canvas id="signatureCanvasRegister"></canvas>
+                </div>
+                <div class="signature-pad__actions">
+                  <span class="signature-hint">Firma directamente en el recuadro con el mouse o con el tacto.</span>
+                  <button type="button" id="signatureClearBtnRegister" class="btn btn-outline btn-small">Limpiar firma</button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="attendeeGuestModal" name="attendeeGuest" value="0" />
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelRegisterAttendanceBtn">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="submitAttendanceModalBtn">Registrar</button>
+        </div>
+        <div id="loadingOverlayRegister" class="loading-overlay" hidden>
+          <div class="loading-spinner"></div>
+          <p>Registrando asistencia...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Ver/Editar evento -->
+    <div id="viewEditEventModal" class="modal" hidden>
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2 id="viewEditEventModalTitle">Ver evento</h2>
+          <button type="button" class="modal-close" id="closeViewEditEventModal" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="viewEditEventForm">
+            <input type="hidden" id="modalEventId" name="eventId" />
+            <div class="flex">
+              <div style="flex: 1 1 180px">
+                <label for="modalEventType">Tipo de evento</label>
+                <input id="modalEventType" name="eventType" type="text" required />
+              </div>
+              <div style="flex: 1 1 180px">
+                <label for="modalEventSponsor">Empresa patrocinadora</label>
+                <input id="modalEventSponsor" name="eventSponsor" type="text" />
+              </div>
+            </div>
+            <div class="flex">
+              <div style="flex: 1 1 220px">
+                <label for="modalEventName">Nombre del evento</label>
+                <input id="modalEventName" name="eventName" type="text" required />
+              </div>
+              <div style="flex: 1 1 220px">
+                <label for="modalEventManagers">Encargados</label>
+                <input id="modalEventManagers" name="eventManagers" type="text" required />
+              </div>
+            </div>
+            <div>
+              <label for="modalEventDescription">Descripción</label>
+              <textarea id="modalEventDescription" name="eventDescription" rows="3" required></textarea>
+            </div>
+            <div class="flex" style="gap: 1rem; flex-wrap: wrap">
+              <div style="flex: 1 1 140px">
+                <label for="modalEventGuests">Número de invitados</label>
+                <input id="modalEventGuests" name="eventGuests" type="number" min="1" required />
+              </div>
+              <div style="flex: 1 1 160px">
+                <label for="modalEventDate">Fecha</label>
+                <input id="modalEventDate" name="eventDate" type="date" required />
+              </div>
+              <div style="flex: 1 1 160px">
+                <label for="modalEventStartTime">Hora de inicio</label>
+                <input id="modalEventStartTime" name="eventStartTime" type="time" required />
+              </div>
+              <div style="flex: 1 1 160px">
+                <label for="modalEventEndTime">Hora de fin</label>
+                <input id="modalEventEndTime" name="eventEndTime" type="time" required />
+              </div>
+            </div>
+            <div>
+              <label for="modalEventLocation">Lugar</label>
+              <input id="modalEventLocation" name="eventLocation" type="text" required />
+            </div>
+            <p id="modalEventMessage" class="success hidden"></p>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="cancelViewEditEventBtn">Cancelar</button>
+          <button type="button" class="btn btn-outline" id="toggleEditModeBtn">Editar</button>
+          <button type="button" class="btn btn-primary" id="saveEventBtn" hidden>Guardar cambios</button>
+        </div>
+        <div id="loadingOverlayEvent" class="loading-overlay" hidden>
+          <div class="loading-spinner"></div>
+          <p>Cargando evento...</p>
+        </div>
+      </div>
+    </div>
+
     <footer>© <span id="year"></span> Eventos C4A • Usuario</footer>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="../../core/storage.js"></script>
     <script src="../../core/api.js"></script>
     <script src="../../core/auth.js"></script>

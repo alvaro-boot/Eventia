@@ -8,28 +8,22 @@
   </head>
   <body>
     <main>
-      <section class="glass-card">
-        <div class="glass-header">
-          <div>
-            <h1>Gestión de eventos</h1>
-            <p class="badge">Crea, edita y monitorea la asistencia</p>
-          </div>
-          <div class="actions">
-            <button id="enableEditBtn" class="btn btn-outline hidden" type="button" title="Editar evento">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" width="18" height="18">
-                <path
-                  d="M15.232 5.232a3 3 0 0 1 4.243 4.243l-9.193 9.192a1 1 0 0 1-.53.28l-4 .8a1 1 0 0 1-1.18-1.18l.8-4a1 1 0 0 1 .28-.53l9.193-9.193zm2.828 1.415a1 1 0 0 0-1.414 0L9 14.293V15h.707l7.646-7.646a1 1 0 0 0 0-1.414zM7.586 16 7 18.414 9.414 17.828 9.999 17.242V16H7.586z"
-                ></path>
-              </svg>
-              Editar
-            </button>
-            <a id="backToPanelBtn" class="btn btn-outline" href="#">Volver al panel</a>
-            <button id="logoutBtn" class="btn btn-primary">Cerrar sesión</button>
-          </div>
+      <div class="page-header">
+        <h1>Gestión de eventos</h1>
+        <button id="menuToggle" class="btn btn-icon menu-toggle" aria-label="Menú">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div class="main-menu" id="mainMenu" hidden>
+          <button class="main-menu__item" data-action="edit-event" id="enableEditBtn" hidden>Editar</button>
+          <button class="main-menu__item" data-action="back-panel">Volver al panel</button>
+          <button class="main-menu__item" data-action="logout">Cerrar sesión</button>
         </div>
+      </div>
 
-        <section class="glass-card" style="margin-top: 1.5rem; padding: 1.5rem">
-          <h2>Crear o actualizar evento</h2>
+      <section>
+        <h2>Crear o actualizar evento</h2>
           <form id="eventForm">
               <input type="hidden" id="eventId" name="eventId" />
               <div class="flex">

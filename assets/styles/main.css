@@ -21,6 +21,16 @@
   font-family: "Poppins", sans-serif;
 }
 
+* {
+  box-sizing: border-box;
+}
+
+html {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
 body {
   min-height: 100vh;
   display: flex;
@@ -33,16 +43,22 @@ body {
   color: var(--color-text);
   padding: 2rem;
   width: 100%;
+  max-width: 100vw;
+  margin: 0;
   box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
 }
 
 main {
   width: 100%;
-  max-width: 1200px;
+  max-width: min(1200px, 100%);
   display: flex;
   flex-direction: column;
   gap: 2rem;
   box-sizing: border-box;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .glass-card {
@@ -54,6 +70,7 @@ main {
   -webkit-backdrop-filter: blur(var(--blur-amount));
   padding: 2rem;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
   position: relative;
   overflow: visible;
@@ -212,7 +229,7 @@ textarea:focus {
   flex-direction: column;
   gap: 0.25rem;
   min-width: 180px;
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: rgba(255, 255, 255, 0.98);
   border: 1px solid rgba(77, 106, 255, 0.25);
   border-radius: 14px;
@@ -222,6 +239,37 @@ textarea:focus {
   z-index: 9999;
   max-height: 80vh;
   overflow-y: auto;
+}
+
+.smart-menu__list > * {
+  width: 100%;
+  display: block;
+}
+
+/* Asegurar que no haya elementos adicionales dentro del menú */
+.smart-menu__list .btn-icon,
+.smart-menu__list .smart-menu__icon-btn,
+.smart-menu__list .smart-menu__split,
+.smart-menu__list .smart-menu__split > * {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.smart-menu__list button:not(.smart-menu__item),
+.smart-menu__list .smart-menu__item + .btn-icon,
+.smart-menu__list .smart-menu__item + button {
+  display: none !important;
+}
+
+/* Asegurar que solo los items del menú sean visibles */
+.smart-menu__list > .smart-menu__item {
+  display: block !important;
+  width: 100% !important;
 }
 
 .smart-menu__list[hidden] {
@@ -237,12 +285,23 @@ textarea:focus {
   border: none;
   background: transparent;
   border-radius: 10px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.75rem 1rem;
   text-align: left;
   color: var(--color-primary);
   font-size: 0.9rem;
+  font-weight: 500;
   transition: background 0.2s ease, color 0.2s ease;
   cursor: pointer;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.smart-menu__item::after,
+.smart-menu__item::before {
+  display: none !important;
+  content: none !important;
 }
 
 .smart-menu__item:hover {
@@ -250,46 +309,18 @@ textarea:focus {
   color: var(--color-secondary);
 }
 
-.smart-menu__split {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.smart-menu__item:active {
+  background: rgba(77, 106, 255, 0.15);
 }
 
-.smart-menu__split .smart-menu__item {
-  flex: 1;
+/* Ocultar cualquier botón o elemento adicional dentro de los items del menú */
+.smart-menu__item > *:not(:first-child),
+.smart-menu__item .btn-icon,
+.smart-menu__item .smart-menu__icon-btn {
+  display: none !important;
 }
 
-.smart-menu__icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(77, 106, 255, 0.35);
-  background: rgba(255, 255, 255, 0.4);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease,
-    background 0.2s ease;
-}
-
-.smart-menu__icon-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: var(--color-primary);
-}
-
-.smart-menu__icon-btn:hover {
-  border-color: var(--color-primary);
-  background: rgba(77, 106, 255, 0.12);
-  box-shadow: 0 8px 18px rgba(77, 106, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-.smart-menu__icon-btn:active {
-  transform: translateY(0);
-}
+/* Estilos eliminados - ya no se usan smart-menu__split ni smart-menu__icon-btn */
 
 .form-actions {
   display: flex;
@@ -300,20 +331,22 @@ textarea:focus {
 
 .signature-pad {
   margin-top: 0.5rem;
-  border: 1px dashed rgba(77, 106, 255, 0.4);
+  border: 1px solid rgba(77, 106, 255, 0.3);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.45);
-  min-height: 180px;
+  background: rgba(255, 255, 255, 0.8);
+  width: 300px;
+  height: 400px;
   overflow: hidden;
   position: relative;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .signature-pad canvas {
-  width: 100%;
-  height: 220px;
+  width: 300px;
+  height: 400px;
   display: block;
   cursor: crosshair;
   touch-action: none;
@@ -322,12 +355,14 @@ textarea:focus {
 /* Mejoras para móviles */
 @media (max-width: 768px) {
   .signature-pad {
-    min-height: 250px;
+    width: 300px;
+    height: 400px;
     border-width: 2px;
   }
 
   .signature-pad canvas {
-    height: 280px;
+    width: 300px;
+    height: 400px;
     cursor: pointer;
   }
 
@@ -408,6 +443,12 @@ textarea:focus {
   background: rgba(255, 255, 255, 0.25);
   border: 1px solid rgba(120, 132, 255, 0.15);
   position: relative;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+  margin: 0;
+  padding: 0;
 }
 
 table {
@@ -416,6 +457,18 @@ table {
   background: transparent;
   table-layout: auto;
   position: relative;
+  min-width: 600px;
+  max-width: 100%;
+}
+
+/* Asegurar que las tablas no se desborden del contenedor */
+.table-wrapper {
+  contain: layout;
+}
+
+.table-wrapper table {
+  width: max-content;
+  min-width: 600px;
 }
 
 table tbody tr {
@@ -430,13 +483,17 @@ table td {
 .table-responsive {
   display: block;
   width: 100%;
+  max-width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 }
 
 .table-responsive table {
   width: 100%;
+  max-width: 100%;
   margin: 0;
+  min-width: 600px;
 }
 
 th,
@@ -661,7 +718,66 @@ tr:last-child td {
   display: grid;
   gap: 2rem;
   width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
+  overflow: visible;
+  position: relative;
+}
+
+.card-section > * {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Asegurar que los artículos no se desborden */
+article {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+article.glass-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+/* Asegurar que el contenedor de la lista de asistentes no se desborde */
+.attendance-list-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.attendance-list-container .table-wrapper {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Asegurar que section.glass-card no se desborde */
+section.glass-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  position: relative;
+}
+
+section.glass-card .card-section {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
+}
+
+section.glass-card article {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible;
 }
 
 footer {
@@ -726,12 +842,34 @@ footer {
   body {
     padding: 1rem;
     align-items: stretch;
+    overflow-x: hidden;
   }
 
   main {
-    gap: 1.5rem;
+    gap: 1.25rem;
     max-width: 100%;
     width: 100%;
+    overflow-x: hidden;
+  }
+  
+  section {
+    padding: 1.25rem;
+    overflow-x: hidden;
+  }
+  
+  .section-header {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .event-actions {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .event-actions .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
   }
 
   .glass-card {
@@ -823,14 +961,46 @@ footer {
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 -1rem;
-    padding: 0 1rem;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .attendance-list-container {
+    padding: 1.5rem !important;
+    overflow: visible;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .attendance-list-container .table-wrapper {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .attendance-list-container .glass-header {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .attendance-list-container .search-box {
+    max-width: 100%;
   }
 
   table {
     font-size: 0.85rem;
     min-width: 600px;
+    width: max-content;
+  }
+  
+  .table-wrapper {
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   th,
@@ -877,22 +1047,143 @@ footer {
   }
 }
 
-/* Móviles - hasta 480px */
+/* Móviles - hasta 480px - Mobile First Design */
 @media (max-width: 480px) {
   body {
-    padding: 0.75rem;
+    padding: 0;
     align-items: stretch;
     width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    background: linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 100%);
   }
 
   main {
     gap: 1.5rem;
     max-width: 100%;
     width: 100%;
+    padding: 1rem;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  
+  /* Encabezado mobile-first */
+  .page-header {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 20px rgba(77, 106, 255, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid rgba(77, 106, 255, 0.1);
+  }
+  
+  .page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+  
+  .menu-toggle {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(77, 106, 255, 0.1);
+    border: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .menu-toggle:hover {
+    background: rgba(77, 106, 255, 0.15);
+  }
+  
+  .menu-toggle span {
+    width: 22px;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    transition: all 0.2s ease;
+  }
+  
+  section {
+    padding: 0;
+    margin-bottom: 0;
+    overflow-x: hidden;
+    background: transparent;
+    border: none;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding: 0;
+  }
+  
+  .section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0;
+  }
+  
+  /* Botones de acción grandes y redondeados */
+  .event-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    width: 100%;
+  }
+  
+  .event-actions .btn {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(77, 106, 255, 0.2);
+    color: var(--color-primary);
+    box-shadow: 0 2px 8px rgba(77, 106, 255, 0.1);
+    transition: all 0.2s ease;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .event-actions .btn:hover:not(:disabled) {
+    background: rgba(77, 106, 255, 0.05);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(77, 106, 255, 0.15);
+    transform: translateY(-1px);
+  }
+  
+  .event-actions .btn:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(77, 106, 255, 0.12);
+  }
+  
+  .event-actions .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .glass-card {
-    padding: 1.25rem;
+    padding: 1rem;
     border-radius: 20px;
     width: 100%;
     max-width: 100%;
@@ -912,17 +1203,159 @@ footer {
     overflow: visible;
   }
 
-  /* Asegurar que los contenedores no corten el menú en móviles */
-  .table-wrapper,
+  /* Convertir tabla en cards en móviles */
+  .table-wrapper {
+    overflow-x: visible;
+    overflow-y: visible;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .table-wrapper table {
+    width: 100%;
+    max-width: 100%;
+    display: block;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .table-wrapper thead {
+    display: none;
+  }
+  
+  .table-wrapper tbody {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .table-wrapper tbody tr {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(77, 106, 255, 0.2);
+    border-radius: 16px;
+    padding: 1rem 1rem;
+    margin-bottom: 0.75rem;
+    margin-left: 0;
+    margin-right: 0;
+    box-shadow: 0 2px 8px rgba(77, 106, 255, 0.08);
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+    gap: 0.875rem;
+    min-width: 0;
+    overflow: hidden;
+  }
+  
+  /* Card seleccionada - fondo azul claro */
+  .table-wrapper tbody tr:has(input[type="radio"]:checked),
+  .table-wrapper tbody tr.selected {
+    background: rgba(77, 106, 255, 0.1);
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(77, 106, 255, 0.15);
+  }
+  
+  .table-wrapper tbody tr:active {
+    transform: scale(0.98);
+  }
+  
+  .table-wrapper tbody tr:last-child {
+    margin-bottom: 0;
+  }
+  
+  .table-wrapper tbody td {
+    display: block;
+    padding: 0;
+    border: none;
+    box-sizing: border-box;
+    min-width: 0;
+  }
+  
+  /* Radio button a la izquierda */
+  .table-wrapper tbody td:first-child {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 22px;
+    max-width: 22px;
+  }
+  
+  .table-wrapper tbody td:first-child:before {
+    display: none;
+  }
+  
+  .table-wrapper tbody td:first-child input[type="radio"] {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+    flex-shrink: 0;
+  }
+  
+  /* Nombre del evento a la derecha */
+  .table-wrapper tbody td[data-label="Nombre"] {
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 22px - 0.875rem);
+    display: block;
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--color-text);
+    line-height: 1.5;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+  
+  .table-wrapper tbody td[data-label="Nombre"]:before {
+    display: none;
+  }
+  
+  /* Otros campos ocultos */
+  .table-wrapper tbody td:not(:first-child):not([data-label="Nombre"]):not([colspan]) {
+    display: none;
+  }
+  
+  /* Mensaje sin eventos */
+  .table-wrapper tbody td[colspan] {
+    display: block;
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .table-wrapper tbody td[colspan]:before {
+    display: none;
+  }
+  
   .glass-card,
   section.glass-card,
   article {
     overflow: visible !important;
-  }
-
-  .table-wrapper {
-    overflow-x: auto !important;
-    overflow-y: visible !important;
   }
 
   .glass-header {
@@ -1022,20 +1455,51 @@ footer {
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    margin: 0 -1rem;
-    padding: 0 1rem;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 12px;
+  }
+  
+  .attendance-list-container {
+    padding: 1rem !important;
   }
 
   table {
-    font-size: 0.85rem;
-    min-width: 700px;
-    width: 100%;
+    font-size: 0.875rem;
+    min-width: 600px;
+    width: max-content;
+  }
+  
+  .table-wrapper table {
+    width: max-content;
+    min-width: 600px;
   }
 
   th,
   td {
     padding: 0.75rem 0.5rem;
     white-space: nowrap;
+    font-size: 0.875rem;
+  }
+  
+  th {
+    font-size: 0.875rem;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  /* Asegurar que el contenedor principal no se desborde */
+  main {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  section {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
   }
 
   /* Ocultar columnas menos importantes en móviles usando clase */
@@ -1052,7 +1516,7 @@ footer {
   /* En móviles, mostrar solo 3 columnas visibles */
   @media (max-width: 768px) {
     table td[colspan="7"] {
-      /* Mantener el colspan pero ajustar visualmente */
+      display: table-cell;
     }
   }
 
@@ -1203,13 +1667,26 @@ footer {
   }
 
   .table-wrapper {
-    margin: 0 -0.75rem;
-    padding: 0 0.75rem;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .attendance-list-container {
+    padding: 1rem !important;
   }
 
   table {
     font-size: 0.8rem;
     min-width: 600px;
+    width: max-content;
+  }
+  
+  .table-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
   }
 
   th,
@@ -1400,6 +1877,353 @@ footer {
   }
 }
 
+/* Formulario de asistencia - Layout base */
+.attendance-form-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+}
+
+/* Asegurar que el contenedor del formulario no se desborde */
+article.glass-card form.attendance-form-layout {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.attendance-form-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 992px) {
+  .attendance-form-main {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.attendance-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex: 1;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.form-field label {
+  font-size: 0.9rem;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.form-field input,
+.form-field select,
+.form-field textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(120, 132, 255, 0.25);
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.form-field input:focus,
+.form-field select:focus,
+.form-field textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(77, 106, 255, 0.15);
+}
+
+/* Asegurar que los elementos dentro del formulario no se desborden */
+.attendance-form-layout input,
+.attendance-form-layout select,
+.attendance-form-layout textarea,
+.attendance-form-layout canvas {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.attendance-form-main > * {
+  box-sizing: border-box;
+}
+
+.form-field-spacer {
+  visibility: hidden;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  display: none;
+}
+
+.attendance-form-signature {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+@media (min-width: 992px) {
+  .attendance-form-signature {
+    width: auto;
+    max-width: 300px;
+  }
+}
+
+.attendance-form-signature label {
+  font-weight: 500;
+}
+
+.signature-pad {
+  width: 300px;
+  height: 400px;
+  max-width: 300px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.signature-pad canvas {
+  width: 300px;
+  height: 400px;
+  max-width: 300px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 992px) {
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+    max-width: 300px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
+    max-width: 300px;
+  }
+}
+
+/* Móviles pequeños - hasta 480px */
+@media (max-width: 480px) {
+  .attendance-form-layout {
+    gap: 1rem;
+  }
+
+  .attendance-form-main {
+    gap: 1rem;
+  }
+
+  .attendance-form-fields {
+    gap: 0.75rem;
+  }
+
+  .form-fields-column {
+    gap: 0.75rem;
+  }
+
+  .form-field-spacer {
+    display: none;
+  }
+}
+
+/* Móviles y tablets pequeñas - hasta 767px */
+@media (max-width: 767px) {
+  .attendance-form-main {
+    flex-direction: column;
+  }
+
+  .attendance-form-fields {
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .attendance-form-signature {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Tablets medianas - 768px a 991px */
+@media (min-width: 768px) and (max-width: 991px) {
+  .attendance-form-layout {
+    gap: 1.25rem;
+  }
+
+  .attendance-form-main {
+    display: flex;
+    flex-direction: row;
+    gap: 1.5rem;
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .attendance-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 300px);
+  }
+
+  .attendance-form-signature {
+    flex-shrink: 1;
+    min-width: 200px;
+    max-width: min(320px, calc(100% - 1.5rem));
+    width: auto;
+  }
+
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
+  }
+}
+
+/* Tablets grandes y desktop pequeño - 992px a 1023px */
+@media (min-width: 992px) and (max-width: 1023px) {
+  .attendance-form-main {
+    gap: 2rem;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .attendance-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 340px);
+  }
+
+  .attendance-form-signature {
+    flex-shrink: 1;
+    min-width: 250px;
+    max-width: min(320px, calc(100% - 2rem));
+    width: auto;
+  }
+
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
+  }
+}
+
+/* Pantallas grandes (desktop) - 1024px a 1399px */
+@media (min-width: 1024px) and (max-width: 1399px) {
+  .attendance-form-main {
+    gap: 2.5rem;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .attendance-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 430px);
+  }
+
+  .attendance-form-signature {
+    flex-shrink: 1;
+    min-width: 300px;
+    max-width: min(400px, calc(100% - 2.5rem));
+    width: auto;
+  }
+
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
+  }
+}
+
+/* Pantallas muy grandes - 1400px en adelante */
+@media (min-width: 1400px) {
+  .attendance-form-main {
+    gap: 3rem;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .attendance-form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+    max-width: calc(100% - 530px);
+  }
+
+  .attendance-form-signature {
+    flex-shrink: 1;
+    min-width: 350px;
+    max-width: min(500px, calc(100% - 3rem));
+    width: auto;
+  }
+
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
+  }
+}
+
 /* Impresión */
 @media print {
   body {
@@ -1421,6 +2245,718 @@ footer {
 
   table {
     font-size: 0.75rem;
+  }
+}
+
+/* Nuevos estilos para diseño simplificado */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  position: relative;
+}
+
+.page-header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.menu-toggle {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.menu-toggle span {
+  width: 20px;
+  height: 2px;
+  background: var(--color-text);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.main-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  padding: 0.5rem;
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.main-menu__item {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--color-text);
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.main-menu__item:hover {
+  background: rgba(77, 106, 255, 0.1);
+}
+
+main > section {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 2rem;
+}
+
+main > section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 1.5rem;
+}
+
+.mark-arrival-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  padding: 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.mark-arrival-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mark-arrival-form .form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mark-arrival-form select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(120, 132, 255, 0.25);
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--color-text);
+  font-size: 1rem;
+}
+
+.mark-arrival-form select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(77, 106, 255, 0.15);
+}
+
+.mark-arrival-form select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-header h2 {
+  margin-bottom: 0;
+}
+
+.event-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.event-actions .btn {
+  min-width: auto;
+  padding: 0.6rem 1.2rem;
+  font-size: 0.9rem;
+}
+
+.event-actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.event-radio {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+}
+
+.event-radio:checked {
+  accent-color: var(--color-primary);
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: rgba(77, 106, 255, 0.05);
+}
+
+/* Buscador compacto al 30% */
+.search-box-compact {
+  width: 30%;
+  min-width: 200px;
+  margin-left: auto;
+}
+
+.search-box-compact input {
+  width: 100%;
+}
+
+/* Event info bar */
+.event-info-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.event-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.event-info__label {
+  font-weight: 500;
+  color: var(--color-text-light);
+}
+
+.event-info__name {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Attendance content layout */
+.attendance-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.register-section,
+.list-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 24px;
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  padding: 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: visible;
+}
+
+.register-section form {
+  position: relative;
+  z-index: 1;
+}
+
+.register-section .loading-overlay {
+  z-index: 1000;
+}
+
+.list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.list-header h2 {
+  margin-bottom: 0;
+}
+
+/* Firma tamaño fijo 300x400 - ya definido arriba, solo ajustar altura */
+.signature-pad {
+  width: 300px;
+  height: 400px;
+  margin-top: 0.5rem;
+  border: 1px solid rgba(77, 106, 255, 0.3);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.signature-pad canvas {
+  width: 300px;
+  height: 400px;
+  display: block;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 1000;
+  border-radius: 24px;
+}
+
+.loading-overlay[hidden] {
+  display: none !important;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(77, 106, 255, 0.2);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-overlay p {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+/* Modal styles */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.modal[hidden] {
+  display: none !important;
+}
+
+.modal-content {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(77, 106, 255, 0.2);
+  border-radius: 24px;
+  box-shadow: 0 20px 45px rgba(79, 104, 255, 0.25);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  width: 100%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-large {
+  max-width: 800px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(77, 106, 255, 0.15);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 24px 24px 0 0;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: background 0.2s;
+}
+
+.modal-close:hover {
+  background: rgba(77, 106, 255, 0.1);
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 200px);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(77, 106, 255, 0.25);
+}
+
+.modal-body input:focus,
+.modal-body select:focus,
+.modal-body textarea:focus {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(77, 106, 255, 0.15);
+}
+
+.modal-body input:disabled,
+.modal-body select:disabled,
+.modal-body textarea:disabled {
+  background: rgba(240, 240, 240, 0.8);
+  color: var(--color-text);
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.modal-body label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+  font-size: 0.9rem;
+}
+
+.modal-body .flex {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.modal-body .flex > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.modal-body .attendance-form-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal-body .attendance-form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.modal-body .form-fields-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* Pantalla pequeña - una columna */
+@media (max-width: 767px) {
+  .modal-body .attendance-form-main {
+    flex-direction: column;
+  }
+  
+  .modal-body .attendance-form-fields {
+    flex-direction: column;
+  }
+  
+  .modal-body .form-fields-column {
+    width: 100%;
+  }
+  
+  .modal-body .attendance-form-signature {
+    width: 100%;
+  }
+  
+  .modal-body .signature-pad {
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .modal-body .signature-pad canvas {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Pantalla mediana - dos columnas de campos + firma */
+@media (min-width: 768px) and (max-width: 991px) {
+  .modal-content {
+    max-width: 900px;
+  }
+  
+  .modal-body .attendance-form-main {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+  }
+  
+  .modal-body .attendance-form-fields {
+    flex-direction: row;
+    gap: 1.5rem;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .modal-body .form-fields-column {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .modal-body .attendance-form-signature {
+    width: 300px;
+    flex-shrink: 0;
+  }
+  
+  .modal-body .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+}
+
+/* Pantalla grande - dos columnas de campos + firma */
+@media (min-width: 992px) {
+  .modal-content {
+    max-width: 1100px;
+  }
+  
+  .modal-content.modal-large {
+    max-width: 1200px;
+  }
+  
+  .modal-body {
+    padding: 2rem;
+  }
+  
+  .modal-body .attendance-form-main {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 3rem;
+  }
+  
+  .modal-body .attendance-form-fields {
+    flex-direction: column;
+    gap: 1.5rem;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .modal-body .form-fields-column {
+    flex: 1;
+    min-width: 0;
+    gap: 1.25rem;
+  }
+  
+  .modal-body .form-field {
+    gap: 0.5rem;
+  }
+  
+  .modal-body .form-field label {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  
+  .modal-body .form-field input,
+  .modal-body .form-field select,
+  .modal-body .form-field textarea {
+    padding: 1rem 1.25rem;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+  
+  .modal-body .attendance-form-signature {
+    width: 300px;
+    flex-shrink: 0;
+  }
+  
+  .modal-body .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  padding: 1.5rem;
+  border-top: 1px solid rgba(77, 106, 255, 0.15);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 0 0 24px 24px;
+}
+
+.modal-content .loading-overlay {
+  border-radius: 24px;
+}
+
+.event-actions-bar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+/* Círculo de estado */
+.status-indicator {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--color-danger);
+}
+
+.text-muted {
+  color: var(--color-text-light);
+  font-size: 0.85rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .page-header {
+    flex-wrap: wrap;
+  }
+
+  .search-box-compact {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .event-info-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .attendance-form-signature {
+    width: 100%;
+  }
+
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+    max-width: 300px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
+    max-width: 300px;
+  }
+
+  .list-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .list-header .search-box-compact {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .signature-pad {
+    width: 300px;
+    height: 400px;
+  }
+
+  .signature-pad canvas {
+    width: 300px;
+    height: 400px;
   }
 }
 
