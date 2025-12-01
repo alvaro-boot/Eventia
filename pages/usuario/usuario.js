@@ -988,7 +988,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(blob);
     });
 
-  // Función para optimizar y comprimir la firma
+  // Función para optimizar y comprimir la firma - devuelve base64 directamente
   const optimizeSignature = (canvas) => {
     return new Promise((resolve) => {
       if (!canvas) {
@@ -997,97 +997,67 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // Tamaño muy pequeño para asegurar que quepa en la BD
-        const targetWidth = 80;
-        const targetHeight = 40;
-        const quality = 0.15;
-        
-        // Crear un canvas temporal más pequeño
-        const tempCanvas = document.createElement("canvas");
-        const tempCtx = tempCanvas.getContext("2d");
-        
-        tempCanvas.width = targetWidth;
-        tempCanvas.height = targetHeight;
-        
-        // Dibujar la imagen redimensionada
-        tempCtx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
-        
-        // Convertir a JPEG con calidad muy reducida
-        if (typeof tempCanvas.toBlob === "function") {
-          tempCanvas.toBlob((blob) => {
-            if (!blob) {
-              resolve(null);
-              return;
+        // Función recursiva para reducir hasta que quepa en la BD (máximo 500 caracteres)
+        const compressToFit = (sourceCanvas, width, height, quality, maxSize = 500) => {
+          const tempCanvas = document.createElement("canvas");
+          const tempCtx = tempCanvas.getContext("2d");
+          
+          tempCanvas.width = width;
+          tempCanvas.height = height;
+          
+          // Dibujar la imagen redimensionada con fondo blanco
+          tempCtx.fillStyle = "#FFFFFF";
+          tempCtx.fillRect(0, 0, width, height);
+          tempCtx.drawImage(sourceCanvas, 0, 0, width, height);
+          
+          // Convertir a JPEG con calidad reducida
+          const dataUrl = tempCanvas.toDataURL("image/jpeg", quality);
+          const base64Data = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
+          
+          console.log(`Firma optimizada: ${width}x${height}, calidad ${quality.toFixed(2)}, base64 = ${base64Data.length} caracteres`);
+          
+          // Si aún es muy grande y podemos reducir más, intentar con tamaño/calidad menor
+          if (base64Data.length > maxSize) {
+            if (width > 60 && height > 30) {
+              // Reducir tamaño primero
+              return compressToFit(sourceCanvas, Math.floor(width * 0.75), Math.floor(height * 0.75), quality, maxSize);
+            } else if (quality > 0.1) {
+              // Reducir calidad
+              return compressToFit(sourceCanvas, width, height, Math.max(0.1, quality * 0.6), maxSize);
+            } else if (quality > 0.05) {
+              // Última reducción de calidad
+              return compressToFit(sourceCanvas, width, height, 0.05, maxSize);
+            } else if (width > 50 && height > 25) {
+              // Última reducción de tamaño
+              return compressToFit(sourceCanvas, 50, 25, 0.05, maxSize);
             }
-            // Verificar tamaño del base64 antes de enviar
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64 = reader.result;
-              const base64Data = base64.includes(",") ? base64.split(",")[1] : base64;
-              console.log(`Firma optimizada: tamaño blob = ${blob.size} bytes, base64 = ${base64Data.length} caracteres`);
-              
-              // Si aún es muy grande, reducir más
-              if (base64Data.length > 2000) {
-                console.warn(`Firma aún muy grande (${base64Data.length}), reduciendo más...`);
-                // Reducir a 60x30 con calidad 0.1
-                const smallerCanvas = document.createElement("canvas");
-                const smallerCtx = smallerCanvas.getContext("2d");
-                smallerCanvas.width = 60;
-                smallerCanvas.height = 30;
-                smallerCtx.drawImage(canvas, 0, 0, 60, 30);
-                smallerCanvas.toBlob((smallBlob) => {
-                  if (smallBlob) {
-                    const smallReader = new FileReader();
-                    smallReader.onloadend = () => {
-                      const smallBase64 = smallReader.result;
-                      const smallBase64Data = smallBase64.includes(",") ? smallBase64.split(",")[1] : smallBase64;
-                      console.log(`Firma reducida: tamaño blob = ${smallBlob.size} bytes, base64 = ${smallBase64Data.length} caracteres`);
-                      fetch(smallBase64)
-                        .then((response) => response.blob())
-                        .then(resolve)
-                        .catch(() => resolve(null));
-                    };
-                    smallReader.readAsDataURL(smallBlob);
-                  } else {
-                    resolve(blob);
-                  }
-                }, "image/jpeg", 0.1);
-              } else {
-                resolve(blob);
-              }
-            };
-            reader.readAsDataURL(blob);
-          }, "image/jpeg", quality);
-        } else {
+          }
+          
+          return base64Data;
+        };
+        
+        // Empezar con un tamaño pequeño y calidad baja para asegurar que quepa
+        const base64Data = compressToFit(canvas, 120, 60, 0.25, 500);
+        
+        if (base64Data && base64Data.length <= 500) {
+          // Convertir base64 a blob para mantener compatibilidad con el código existente
           try {
-            const dataUrl = tempCanvas.toDataURL("image/jpeg", quality);
-            const base64Data = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
-            console.log(`Firma optimizada: tamaño base64 = ${base64Data.length} caracteres`);
-            
-            if (base64Data.length > 2000) {
-              // Reducir más
-              const smallerCanvas = document.createElement("canvas");
-              const smallerCtx = smallerCanvas.getContext("2d");
-              smallerCanvas.width = 60;
-              smallerCanvas.height = 30;
-              smallerCtx.drawImage(canvas, 0, 0, 60, 30);
-              const smallerDataUrl = smallerCanvas.toDataURL("image/jpeg", 0.1);
-              const smallerBase64Data = smallerDataUrl.includes(",") ? smallerDataUrl.split(",")[1] : smallerDataUrl;
-              console.log(`Firma reducida: tamaño base64 = ${smallerBase64Data.length} caracteres`);
-              fetch(smallerDataUrl)
-                .then((response) => response.blob())
-                .then(resolve)
-                .catch(() => resolve(null));
-            } else {
-              fetch(dataUrl)
-                .then((response) => response.blob())
-                .then(resolve)
-                .catch(() => resolve(null));
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
             }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: "image/jpeg" });
+            console.log(`Firma final: blob = ${blob.size} bytes, base64 = ${base64Data.length} caracteres`);
+            resolve(blob);
           } catch (error) {
-            console.error("Error al optimizar firma:", error);
+            console.error("Error al convertir base64 a blob:", error);
             resolve(null);
           }
+        } else {
+          console.warn(`Firma aún muy grande después de optimización: ${base64Data?.length || 0} caracteres`);
+          resolve(null);
         }
       } catch (error) {
         console.error("Error al optimizar firma:", error);
@@ -1116,6 +1086,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const signatureBlob = await getSignatureBlobArrival();
       if (signatureBlob) {
         signatureBase64 = await blobToBase64(signatureBlob);
+        // Validar que el base64 no exceda 500 caracteres
+        if (signatureBase64 && signatureBase64.length > 500) {
+          console.warn(`Firma demasiado grande (${signatureBase64.length} caracteres), truncando...`);
+          signatureBase64 = signatureBase64.substring(0, 500);
+        }
       }
     }
 
@@ -1135,6 +1110,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderEvents();
     } catch (error) {
       console.error("Error al marcar llegada", error);
+      alert(`Error al marcar la llegada: ${error.message || "Error desconocido"}`);
     } finally {
       if (loadingOverlayArrival) loadingOverlayArrival.hidden = true;
       if (markArrivalBtn) {
@@ -1264,6 +1240,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const signatureBlob = await getSignatureBlobRegister();
       if (signatureBlob) {
         signatureBase64 = await blobToBase64(signatureBlob);
+        // Validar que el base64 no exceda 500 caracteres
+        if (signatureBase64 && signatureBase64.length > 500) {
+          console.warn(`Firma demasiado grande (${signatureBase64.length} caracteres), truncando...`);
+          signatureBase64 = signatureBase64.substring(0, 500);
+        }
       }
     }
 
