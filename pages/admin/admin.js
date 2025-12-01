@@ -1358,8 +1358,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const handleRegisterAttendance = async () => {
     if (!selectedEventId || !attendanceFormModal) return;
 
-    const currentSession = Auth.getSession();
-    if (!currentSession) return;
+    // Usar la sesión que ya está disponible desde el inicio del archivo
+    if (!session) return;
 
     const formValues = {
       numero_identificacion: document.getElementById("attendeeDocumentModal")?.value.trim() || "",
@@ -1389,7 +1389,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const submitData = new FormData();
     submitData.append("evento_id", selectedEventId);
-    submitData.append("user_id", currentSession.id);
+    submitData.append("user_id", session.id);
     submitData.append("numero_identificacion", formValues.numero_identificacion);
     submitData.append("nombres", formValues.nombres);
     submitData.append("apellidos", formValues.apellidos);
@@ -1401,6 +1401,15 @@ document.addEventListener("DOMContentLoaded", () => {
     submitData.append("asiste", "1");
     submitData.append("estado_id", "1");
     
+    // El backend espera firmaNombre siempre, usar un valor por defecto cuando no hay firma
+    const firmaNombre = signatureBase64 
+      ? `firma_${formValues.numero_identificacion}_${Date.now()}.png`
+      : `sin_firma_${formValues.numero_identificacion}_${Date.now()}.png`;
+    
+    // Enviar firmaNombre siempre con un valor válido (no vacío)
+    submitData.append("firmaNombre", firmaNombre);
+    
+    // Enviar firma solo si existe
     if (signatureBase64) {
       submitData.append("firma", signatureBase64);
     }

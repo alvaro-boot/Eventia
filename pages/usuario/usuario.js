@@ -10,7 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const nextEventInfo = document.getElementById("nextEventInfo");
   const userEventsTableBody = document.getElementById("userEventsTableBody");
 
-  const CLIENT_ID = 1;
+  // Variables para gestión de cliente_id dinámico
+  let clientId = null;
+  let cachedClients = [];
+  let currentEventClientId = null; // Guardar el cliente_id del evento que se está editando
 
   let countdownInterval = null;
   let events = [];
@@ -66,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
       menu.hidden = false;
       // Pequeño delay para asegurar que el DOM esté actualizado antes de calcular
       setTimeout(() => {
-        adjustMenuPosition(menu);
+      adjustMenuPosition(menu);
       }, 10);
     }
     const toggle = menu.closest(".smart-menu")?.querySelector("[data-menu-toggle]");
@@ -92,12 +95,35 @@ document.addEventListener("DOMContentLoaded", () => {
     return [];
   };
 
+  const resolveClientId = async () => {
+    if (clientId) return clientId;
+    try {
+      const response = await API.getClientes();
+      cachedClients = toArray(response, "clientes");
+      if (!cachedClients.length) return null;
+      // Para usuarios (role_id = 2), buscar el cliente asociado a su user_id
+      const matchByUser = cachedClients.find(
+        (client) => Number(client.user_id) === Number(session.id)
+      );
+      clientId = matchByUser ? matchByUser.id : cachedClients[0].id;
+      return clientId;
+    } catch (error) {
+      console.error("Error al cargar clientes", error);
+      return null;
+    }
+  };
+
   const fetchClientName = async () => {
     try {
+      const currentClientId = await resolveClientId();
+      if (!currentClientId) {
+        clientName = "Cliente asignado";
+        return;
+      }
       const response = await API.getClientes();
       const clients = toArray(response, "clientes");
       const matched =
-        clients.find((client) => Number(client.id) === CLIENT_ID) || null;
+        clients.find((client) => Number(client.id) === Number(currentClientId)) || null;
       clientName = matched?.nombre || "Cliente asignado";
     } catch (error) {
       console.error("Error al obtener clientes", error);
@@ -196,8 +222,19 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const loadEvents = async () => {
-    const response = await API.listarEventos(CLIENT_ID);
+    try {
+      const currentClientId = await resolveClientId();
+      if (!currentClientId) {
+        console.error("No se pudo determinar el cliente");
+        events = [];
+        return;
+      }
+      const response = await API.listarEventos(currentClientId);
     events = toArray(response, "eventos").map(mapEvent);
+    } catch (error) {
+      console.error("Error al listar eventos", error);
+      events = [];
+    }
   };
 
   const loadAssistances = async () => {
@@ -215,6 +252,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }))
           );
         } catch (error) {
+          // Si el error es "No se encontraron asistencias", no es realmente un error
+          if (error.message && error.message.includes("No se encontraron asistencias")) {
+            // Simplemente no hay asistencias, esto es normal
+            assistancesByEvent.set(event.id, []);
+            return;
+          }
           console.error(
             `Error al obtener asistencias del evento ${event.id}`,
             error
@@ -732,10 +775,43 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadEventData = async (eventId) => {
     if (!eventId) return null;
     try {
-      const response = await API.listarEvento(CLIENT_ID, eventId);
-      // La respuesta puede venir en diferentes formatos
-      const event = response?.evento || response?.data || response;
-      return event;
+      // Intentar primero con el cliente_id resuelto
+      const currentClientId = await resolveClientId();
+      if (!currentClientId) {
+        console.error("No se pudo determinar el cliente");
+        return null;
+      }
+      
+      try {
+        const response = await API.listarEvento(currentClientId, eventId);
+        // La respuesta puede venir en diferentes formatos
+        const event = response?.evento || response?.data || response;
+        // Guardar el cliente_id del evento
+        if (event && event.cliente_id) {
+          currentEventClientId = event.cliente_id;
+        } else {
+          currentEventClientId = currentClientId;
+        }
+        return event;
+      } catch (apiError) {
+        // Si falla, intentar con otros clientes
+        if (!cachedClients.length) {
+          await resolveClientId(); // Esto carga cachedClients
+        }
+        
+        for (const client of cachedClients) {
+          try {
+            const response = await API.listarEvento(client.id, eventId);
+            const event = response?.evento || response?.data || response;
+            currentEventClientId = client.id;
+            return event;
+          } catch (err) {
+            continue;
+          }
+        }
+        
+        throw apiError; // Si no se encontró en ningún cliente, lanzar el error original
+      }
     } catch (error) {
       console.error("Error al cargar evento", error);
       return null;
@@ -774,6 +850,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
     console.log("Evento recibido:", event);
+    // Asegurar que tenemos el cliente_id guardado
+    if (event.cliente_id && !currentEventClientId) {
+      currentEventClientId = event.cliente_id;
+    }
     
     const modalEventId = document.getElementById("modalEventId");
     const modalEventType = document.getElementById("modalEventType");
@@ -849,6 +929,7 @@ document.addEventListener("DOMContentLoaded", () => {
       viewEditEventForm.reset();
     }
     currentEventId = null;
+    currentEventClientId = null; // Limpiar también el cliente_id
   };
   
   const handleSaveEvent = async () => {
@@ -866,7 +947,28 @@ document.addEventListener("DOMContentLoaded", () => {
       hora_inicio: formData.get("eventStartTime"),
       hora_fin: formData.get("eventEndTime"),
       lugar: formData.get("eventLocation"),
+      cliente_id: currentEventClientId || await resolveClientId(), // Incluir cliente_id en el payload
+      user_id: session.id,
+      estado: "Activo",
+      estado_id: 1,
     };
+    
+    // Determinar el cliente_id correcto para la URL
+    let targetClientId = currentEventClientId;
+    if (!targetClientId) {
+      // Si no tenemos el cliente_id guardado, intentar obtenerlo
+      const currentClientId = await resolveClientId();
+      if (!currentClientId) {
+        const messageEl = document.getElementById("modalEventMessage");
+        if (messageEl) {
+          messageEl.textContent = "No se pudo determinar el cliente del evento. Recarga la página e intenta nuevamente.";
+          messageEl.classList.remove("hidden", "success");
+          messageEl.classList.add("error");
+        }
+        return;
+      }
+      targetClientId = currentClientId;
+    }
     
     if (loadingOverlayEvent) loadingOverlayEvent.hidden = false;
     if (saveEventBtn) {
@@ -875,7 +977,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     try {
-      await API.actualizarEvento(CLIENT_ID, currentEventId, payload);
+      console.log("Actualizando evento desde usuario.js", {
+        clienteId: targetClientId,
+        eventoId: currentEventId,
+        currentEventClientId: currentEventClientId,
+        payload,
+      });
+      await API.actualizarEvento(targetClientId, currentEventId, payload);
       closeViewEditEventModalFunc();
       renderEvents();
     } catch (error) {
@@ -1214,8 +1322,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const handleRegisterAttendance = async () => {
     if (!selectedEventId || !attendanceFormModal) return;
 
-    const currentSession = Auth.getSession();
-    if (!currentSession) return;
+    // Usar la sesión que ya está disponible desde el inicio del archivo
+    if (!session) return;
 
     const formValues = {
       numero_identificacion: document.getElementById("attendeeDocumentModal")?.value.trim() || "",
@@ -1248,9 +1356,15 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
+    // El backend espera firmaNombre siempre (incluso cuando no hay firma)
+    // Generar un nombre válido siempre
+    const firmaNombre = signatureBase64 
+      ? `firma_${formValues.numero_identificacion}_${Date.now()}.png`
+      : `sin_firma_${formValues.numero_identificacion}_${Date.now()}.png`;
+    
     const submitData = new FormData();
     submitData.append("evento_id", selectedEventId);
-    submitData.append("user_id", currentSession.id);
+    submitData.append("user_id", session.id);
     submitData.append("numero_identificacion", formValues.numero_identificacion);
     submitData.append("nombres", formValues.nombres);
     submitData.append("apellidos", formValues.apellidos);
@@ -1262,9 +1376,20 @@ document.addEventListener("DOMContentLoaded", () => {
     submitData.append("asiste", "1");
     submitData.append("estado_id", "1");
     
-    if (signatureBase64) {
-      submitData.append("firma", signatureBase64);
-    }
+    // CRÍTICO: Enviar firmaNombre SIEMPRE (el backend lo requiere)
+    submitData.append("firmaNombre", firmaNombre);
+    
+    // Enviar firma (vacía si no hay)
+    submitData.append("firma", signatureBase64 || "");
+    
+    // Debug: Verificar qué se está enviando
+    console.log("Datos a enviar:", {
+      evento_id: selectedEventId,
+      tieneFirma: !!signatureBase64,
+      firmaLength: signatureBase64 ? signatureBase64.length : 0,
+      firmaNombre: firmaNombre,
+      formDataKeys: Array.from(submitData.keys())
+    });
 
     if (loadingOverlayRegister) loadingOverlayRegister.hidden = false;
     if (submitAttendanceModalBtn) {
