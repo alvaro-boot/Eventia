@@ -26,7 +26,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const toArray = (payload, fallbackKey) => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload;
-    if (fallbackKey && Array.isArray(payload[fallbackKey])) return payload[fallbackKey];
+    if (fallbackKey && Array.isArray(payload[fallbackKey]))
+      return payload[fallbackKey];
     if (Array.isArray(payload.data)) return payload.data;
     if (Array.isArray(payload.result)) return payload.result;
     return [];
@@ -63,8 +64,12 @@ document.addEventListener("DOMContentLoaded", () => {
           <td data-label="Nombre">${client.nombre}</td>
           <td data-label="Correo">${client.correo_electronico}</td>
           <td data-label="Celular">${client.numero_celular || "—"}</td>
-          <td data-label="Estado"><span class="tag tag-compact">Estado ${client.estado_id ?? "—"}</span></td>
-          <td data-label="ID Usuario"><span class="chip">ID usuario: ${client.user_id ?? "—"}</span></td>
+          <td data-label="Estado"><span class="tag tag-compact">Estado ${
+            client.estado_id ?? "—"
+          }</span></td>
+          <td data-label="ID Usuario"><span class="chip">ID usuario: ${
+            client.user_id ?? "—"
+          }</span></td>
         </tr>
       `
       )
@@ -78,14 +83,20 @@ document.addEventListener("DOMContentLoaded", () => {
       renderClients(clientSearch ? clientSearch.value : "");
     } catch (error) {
       console.error("Error al obtener clientes", error);
-      showMessage(error.message || "No fue posible cargar los clientes.", "error");
+      showMessage(
+        error.message || "No fue posible cargar los clientes.",
+        "error"
+      );
     }
   };
 
   if (clientForm) {
     clientForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      showMessage("La creación y edición de clientes debe realizarse desde la API o el sistema principal.", "error");
+      showMessage(
+        "La creación y edición de clientes debe realizarse desde la API o el sistema principal.",
+        "error"
+      );
     });
   }
 
@@ -96,28 +107,32 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (clientSearch) {
-    clientSearch.addEventListener("input", (event) => renderClients(event.target.value));
+    clientSearch.addEventListener("input", (event) =>
+      renderClients(event.target.value)
+    );
   }
 
   // Funciones para eventos
   const adjustMenuPosition = (menu) => {
     if (!menu) return;
     menu.classList.remove("smart-menu__list--top");
-    
+
     // Primero mostrar el menú para calcular su tamaño
     const wasHidden = menu.hidden;
     menu.hidden = false;
-    
+
     const menuRect = menu.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-    
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight;
+    const viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth;
+
     // Verificar si el menú se sale por abajo
     if (menuRect.bottom > viewportHeight) {
       // Mostrar arriba si no cabe abajo
       menu.classList.add("smart-menu__list--top");
     }
-    
+
     // Verificar si se sale por la derecha
     if (menuRect.right > viewportWidth) {
       menu.style.right = "0";
@@ -126,13 +141,13 @@ document.addEventListener("DOMContentLoaded", () => {
       menu.style.right = "0";
       menu.style.left = "auto";
     }
-    
+
     // Verificar si se sale por la izquierda
     if (menuRect.left < 0) {
       menu.style.left = "0";
       menu.style.right = "auto";
     }
-    
+
     if (wasHidden) {
       menu.hidden = true;
     }
@@ -153,7 +168,9 @@ document.addEventListener("DOMContentLoaded", () => {
         adjustMenuPosition(menu);
       }, 10);
     }
-    const toggle = menu.closest(".smart-menu")?.querySelector("[data-menu-toggle]");
+    const toggle = menu
+      .closest(".smart-menu")
+      ?.querySelector("[data-menu-toggle]");
     if (toggle) {
       toggle.setAttribute("aria-expanded", visible ? "true" : "false");
     }
@@ -188,10 +205,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return `${hours}:${minutes}`;
     }
 
-    const cleaned = trimmed.toLowerCase().replace(/\./g, "").replace(/\s+/g, "");
-    const ampmMatch = cleaned.match(
-      /^(\d{1,2}):(\d{2})(?::(\d{2}))?(am|pm)$/
-    );
+    const cleaned = trimmed
+      .toLowerCase()
+      .replace(/\./g, "")
+      .replace(/\s+/g, "");
+    const ampmMatch = cleaned.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(am|pm)$/);
     if (ampmMatch) {
       let hours = Number(ampmMatch[1]);
       const minutes = String(ampmMatch[2]).padStart(2, "0");
@@ -219,8 +237,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const formatDateLabel = (eventDate, rawDate) => {
     if (eventDate instanceof Date && !Number.isNaN(eventDate.valueOf())) {
       const months = [
-        "ene", "feb", "mar", "abr", "may", "jun",
-        "jul", "ago", "sep", "oct", "nov", "dic"
+        "ene",
+        "feb",
+        "mar",
+        "abr",
+        "may",
+        "jun",
+        "jul",
+        "ago",
+        "sep",
+        "oct",
+        "nov",
+        "dic",
       ];
       const day = eventDate.getDate();
       const month = months[eventDate.getMonth()];
@@ -356,6 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewEditBtn = document.getElementById("viewEditEventBtn");
     const markArrivalBtn = document.getElementById("markArrivalModalBtn");
     const attendanceBtn = document.getElementById("attendanceEventBtn");
+    const listAttendeesBtn = document.getElementById("listAttendeesBtn");
     const excelBtn = document.getElementById("downloadExcelBtn");
     const pdfBtn = document.getElementById("generatePdfBtn");
 
@@ -364,6 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (viewEditBtn) viewEditBtn.disabled = !hasSelection;
     if (markArrivalBtn) markArrivalBtn.disabled = !hasSelection;
     if (attendanceBtn) attendanceBtn.disabled = !hasSelection;
+    if (listAttendeesBtn) listAttendeesBtn.disabled = !hasSelection;
     if (excelBtn) excelBtn.disabled = !hasSelection;
     if (pdfBtn) pdfBtn.disabled = !hasSelection;
   };
@@ -387,14 +417,26 @@ document.addEventListener("DOMContentLoaded", () => {
         (event) => `
           <tr>
             <td data-label="Seleccionar">
-              <input type="radio" name="eventSelection" value="${event.id}" class="event-radio" />
+              <input type="radio" name="eventSelection" value="${
+                event.id
+              }" class="event-radio" />
             </td>
             <td data-label="Nombre">${event.nombre}</td>
             <td data-label="Tipo" class="hide-mobile">${event.tipo || "—"}</td>
-            <td data-label="Fecha" class="hide-mobile">${formatDateLabel(parseEventDate(event), event.fecha)}</td>
-            <td data-label="Hora" class="hide-mobile">${formatTimeRange(event.hora_inicio, event.hora_fin)}</td>
-            <td data-label="Lugar" class="hide-mobile">${event.lugar || "Sin lugar definido"}</td>
-            <td data-label="Patrocinador">${event.empresa_patrocinadora || "Sin patrocinador"}</td>
+            <td data-label="Fecha" class="hide-mobile">${formatDateLabel(
+              parseEventDate(event),
+              event.fecha
+            )}</td>
+            <td data-label="Hora" class="hide-mobile">${formatTimeRange(
+              event.hora_inicio,
+              event.hora_fin
+            )}</td>
+            <td data-label="Lugar" class="hide-mobile">${
+              event.lugar || "Sin lugar definido"
+            }</td>
+            <td data-label="Patrocinador">${
+              event.empresa_patrocinadora || "Sin patrocinador"
+            }</td>
           </tr>
         `
       )
@@ -414,10 +456,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
-    
+
     // Marcar la fila seleccionada inicialmente si hay un evento seleccionado
     if (selectedEventId) {
-      const selectedRadio = adminEventsTableBody.querySelector(`input[value="${selectedEventId}"]`);
+      const selectedRadio = adminEventsTableBody.querySelector(
+        `input[value="${selectedEventId}"]`
+      );
       if (selectedRadio && selectedRadio.checked) {
         selectedRadio.closest("tr")?.classList.add("selected");
       }
@@ -429,7 +473,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función para generar Excel con lista de asistentes
   const generateExcelForEvent = async (eventId) => {
     if (typeof XLSX === "undefined") {
-      throw new Error("La librería XLSX no está cargada. Por favor, recarga la página.");
+      throw new Error(
+        "La librería XLSX no está cargada. Por favor, recarga la página."
+      );
     }
 
     try {
@@ -452,16 +498,20 @@ document.addEventListener("DOMContentLoaded", () => {
       const excelData = assistances.map((assist, index) => ({
         "#": index + 1,
         "Número de Identidad": assist.numero_identificacion || "",
-        "Nombres": assist.nombres || "",
-        "Apellidos": assist.apellidos || "",
-        "Nombre Completo": `${assist.nombres || ""} ${assist.apellidos || ""}`.trim(),
+        Nombres: assist.nombres || "",
+        Apellidos: assist.apellidos || "",
+        "Nombre Completo": `${assist.nombres || ""} ${
+          assist.apellidos || ""
+        }`.trim(),
         "Correo Electrónico": assist.correo_electronico || "",
         "Número Celular": assist.numero_celular || "",
-        "Empresa": assist.empresa || "",
-        "Cargo": assist.cargo || "",
-        "Estado": Number(assist.asiste) === 1 ? "Asistió" : "Pendiente",
-        "Invitado": Number(assist.invitado) === 1 ? "Sí" : "No",
-        "Fecha de Registro": assist.created_at ? new Date(assist.created_at).toLocaleDateString("es-ES") : "",
+        Empresa: assist.empresa || "",
+        Cargo: assist.cargo || "",
+        Estado: Number(assist.asiste) === 1 ? "Asistió" : "Pendiente",
+        Invitado: Number(assist.invitado) === 1 ? "Sí" : "No",
+        "Fecha de Registro": assist.created_at
+          ? new Date(assist.created_at).toLocaleDateString("es-ES")
+          : "",
       }));
 
       // Crear workbook
@@ -470,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Ajustar ancho de columnas
       const colWidths = [
-        { wch: 5 },   // #
+        { wch: 5 }, // #
         { wch: 18 }, // Número de Identidad
         { wch: 20 }, // Nombres
         { wch: 20 }, // Apellidos
@@ -489,7 +539,10 @@ document.addEventListener("DOMContentLoaded", () => {
       XLSX.utils.book_append_sheet(wb, ws, "Asistentes");
 
       // Generar archivo y descargar
-      const fileName = `Lista_Asistentes_${event.nombre.replace(/[^a-z0-9]/gi, "_")}_${eventId}.xlsx`;
+      const fileName = `Lista_Asistentes_${event.nombre.replace(
+        /[^a-z0-9]/gi,
+        "_"
+      )}_${eventId}.xlsx`;
       XLSX.writeFile(wb, fileName);
     } catch (error) {
       console.error("Error al generar Excel:", error);
@@ -500,7 +553,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función para generar PDF con información del evento
   const generatePdfForEvent = async (eventId) => {
     if (typeof window.jspdf === "undefined") {
-      throw new Error("La librería jsPDF no está cargada. Por favor, recarga la página.");
+      throw new Error(
+        "La librería jsPDF no está cargada. Por favor, recarga la página."
+      );
     }
 
     try {
@@ -553,7 +608,11 @@ document.addEventListener("DOMContentLoaded", () => {
         `Nombre: ${event.nombre || "N/A"}`,
         `Tipo: ${event.tipo || "N/A"}`,
         `Empresa Patrocinadora: ${event.empresa_patrocinadora || "N/A"}`,
-        `Fecha: ${event.fecha ? new Date(event.fecha).toLocaleDateString("es-ES") : "N/A"}`,
+        `Fecha: ${
+          event.fecha
+            ? new Date(event.fecha).toLocaleDateString("es-ES")
+            : "N/A"
+        }`,
         `Hora de Inicio: ${event.hora_inicio || "N/A"}`,
         `Hora de Fin: ${event.hora_fin || "N/A"}`,
         `Lugar: ${event.lugar || "N/A"}`,
@@ -612,9 +671,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (assistances && assistances.length > 0) {
         // Estadísticas
         const totalAsistentes = assistances.length;
-        const asistieron = assistances.filter((a) => Number(a.asiste) === 1).length;
+        const asistieron = assistances.filter(
+          (a) => Number(a.asiste) === 1
+        ).length;
         const pendientes = totalAsistentes - asistieron;
-        const invitados = assistances.filter((a) => Number(a.invitado) === 1).length;
+        const invitados = assistances.filter(
+          (a) => Number(a.invitado) === 1
+        ).length;
 
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
@@ -637,7 +700,13 @@ document.addEventListener("DOMContentLoaded", () => {
         yPos += 5;
 
         // Tabla de asistentes
-        const tableHeaders = ["#", "Identidad", "Nombre Completo", "Correo", "Estado"];
+        const tableHeaders = [
+          "#",
+          "Identidad",
+          "Nombre Completo",
+          "Correo",
+          "Estado",
+        ];
         const colWidths = [10, 30, 60, 50, 30];
         const startX = margin;
 
@@ -674,7 +743,9 @@ document.addEventListener("DOMContentLoaded", () => {
             doc.setFontSize(9);
           }
 
-          const nombreCompleto = `${assist.nombres || ""} ${assist.apellidos || ""}`.trim();
+          const nombreCompleto = `${assist.nombres || ""} ${
+            assist.apellidos || ""
+          }`.trim();
           const estado = Number(assist.asiste) === 1 ? "Asistió" : "Pendiente";
           const rowData = [
             String(index + 1),
@@ -695,7 +766,11 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
-        doc.text("No hay asistentes registrados para este evento.", margin + 5, yPos);
+        doc.text(
+          "No hay asistentes registrados para este evento.",
+          margin + 5,
+          yPos
+        );
       }
 
       // Pie de página
@@ -705,7 +780,9 @@ document.addEventListener("DOMContentLoaded", () => {
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
         doc.text(
-          `Página ${i} de ${totalPages} - Generado el ${new Date().toLocaleDateString("es-ES")}`,
+          `Página ${i} de ${totalPages} - Generado el ${new Date().toLocaleDateString(
+            "es-ES"
+          )}`,
           pageWidth - margin,
           pageHeight - 10,
           { align: "right" }
@@ -713,7 +790,10 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Descargar PDF
-      const fileName = `Informe_Evento_${event.nombre.replace(/[^a-z0-9]/gi, "_")}_${eventId}.pdf`;
+      const fileName = `Informe_Evento_${event.nombre.replace(
+        /[^a-z0-9]/gi,
+        "_"
+      )}_${eventId}.pdf`;
       doc.save(fileName);
     } catch (error) {
       console.error("Error al generar PDF:", error);
@@ -780,16 +860,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Variables para el modal de ver/editar evento
   const viewEditEventModal = document.getElementById("viewEditEventModal");
-  const closeViewEditEventModal = document.getElementById("closeViewEditEventModal");
-  const cancelViewEditEventBtn = document.getElementById("cancelViewEditEventBtn");
+  const closeViewEditEventModal = document.getElementById(
+    "closeViewEditEventModal"
+  );
+  const cancelViewEditEventBtn = document.getElementById(
+    "cancelViewEditEventBtn"
+  );
   const toggleEditModeBtn = document.getElementById("toggleEditModeBtn");
   const saveEventBtn = document.getElementById("saveEventBtn");
   const viewEditEventForm = document.getElementById("viewEditEventForm");
-  const viewEditEventModalTitle = document.getElementById("viewEditEventModalTitle");
+  const viewEditEventModalTitle = document.getElementById(
+    "viewEditEventModalTitle"
+  );
   const loadingOverlayEvent = document.getElementById("loadingOverlayEvent");
   let isEditMode = false;
   let currentEventId = null;
-  
+
   const loadEventData = async (eventId) => {
     if (!eventId) return null;
     try {
@@ -802,7 +888,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return null;
     }
   };
-  
+
   const formatDateForInput = (dateString) => {
     if (!dateString) return "";
     // Si ya está en formato YYYY-MM-DD, devolverlo
@@ -827,47 +913,53 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return dateString;
   };
-  
+
   const populateEventForm = (event) => {
     if (!event) {
       console.error("No se recibió evento para poblar el formulario");
-        return;
-      }
+      return;
+    }
 
     console.log("Evento recibido:", event);
-    
+
     const modalEventId = document.getElementById("modalEventId");
     const modalEventType = document.getElementById("modalEventType");
     const modalEventSponsor = document.getElementById("modalEventSponsor");
     const modalEventName = document.getElementById("modalEventName");
     const modalEventManagers = document.getElementById("modalEventManagers");
-    const modalEventDescription = document.getElementById("modalEventDescription");
+    const modalEventDescription = document.getElementById(
+      "modalEventDescription"
+    );
     const modalEventGuests = document.getElementById("modalEventGuests");
     const modalEventDate = document.getElementById("modalEventDate");
     const modalEventStartTime = document.getElementById("modalEventStartTime");
     const modalEventEndTime = document.getElementById("modalEventEndTime");
     const modalEventLocation = document.getElementById("modalEventLocation");
-    
+
     if (modalEventId) modalEventId.value = event.id || "";
     if (modalEventType) modalEventType.value = event.tipo || "";
-    if (modalEventSponsor) modalEventSponsor.value = event.empresa_patrocinadora || "";
+    if (modalEventSponsor)
+      modalEventSponsor.value = event.empresa_patrocinadora || "";
     if (modalEventName) modalEventName.value = event.nombre || "";
     if (modalEventManagers) modalEventManagers.value = event.encargados || "";
-    if (modalEventDescription) modalEventDescription.value = event.descripcion || "";
+    if (modalEventDescription)
+      modalEventDescription.value = event.descripcion || "";
     if (modalEventGuests) modalEventGuests.value = event.numero_invitados ?? "";
-    if (modalEventDate) modalEventDate.value = formatDateForInput(event.fecha || "");
-    if (modalEventStartTime) modalEventStartTime.value = event.hora_inicio || "";
+    if (modalEventDate)
+      modalEventDate.value = formatDateForInput(event.fecha || "");
+    if (modalEventStartTime)
+      modalEventStartTime.value = event.hora_inicio || "";
     if (modalEventEndTime) modalEventEndTime.value = event.hora_fin || "";
     if (modalEventLocation) modalEventLocation.value = event.lugar || "";
   };
-  
+
   const setEditMode = (enabled) => {
     isEditMode = enabled;
     const fields = viewEditEventForm.querySelectorAll("input, textarea");
     fields.forEach((field) => {
       field.disabled = !enabled;
     });
-    
+
     if (enabled) {
       viewEditEventModalTitle.textContent = "Editar evento";
       toggleEditModeBtn.textContent = "Cancelar edición";
@@ -878,16 +970,16 @@ document.addEventListener("DOMContentLoaded", () => {
       saveEventBtn.hidden = true;
     }
   };
-  
+
   const openViewEditEventModal = async () => {
     if (!viewEditEventModal || !selectedEventId) return;
-    
+
     currentEventId = selectedEventId;
     viewEditEventModal.hidden = false;
     setEditMode(false);
-    
+
     if (loadingOverlayEvent) loadingOverlayEvent.hidden = false;
-    
+
     try {
       const event = await loadEventData(selectedEventId);
       if (event) {
@@ -901,7 +993,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (loadingOverlayEvent) loadingOverlayEvent.hidden = true;
     }
   };
-  
+
   const closeViewEditEventModalFunc = () => {
     if (!viewEditEventModal) return;
     viewEditEventModal.hidden = true;
@@ -911,10 +1003,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     currentEventId = null;
   };
-  
+
   const handleSaveEvent = async () => {
     if (!currentEventId || !viewEditEventForm) return;
-    
+
     const formData = new FormData(viewEditEventForm);
     const payload = {
       tipo: formData.get("eventType"),
@@ -928,13 +1020,13 @@ document.addEventListener("DOMContentLoaded", () => {
       hora_fin: formData.get("eventEndTime"),
       lugar: formData.get("eventLocation"),
     };
-    
+
     if (loadingOverlayEvent) loadingOverlayEvent.hidden = false;
     if (saveEventBtn) {
       saveEventBtn.disabled = true;
       saveEventBtn.textContent = "Guardando...";
     }
-    
+
     try {
       await API.actualizarEvento(CLIENT_ID, currentEventId, payload);
       closeViewEditEventModalFunc();
@@ -959,21 +1051,35 @@ document.addEventListener("DOMContentLoaded", () => {
   // Elementos de modales
   const markArrivalModalBtn = document.getElementById("markArrivalModalBtn");
   const markArrivalModal = document.getElementById("markArrivalModal");
-  const closeMarkArrivalModal = document.getElementById("closeMarkArrivalModal");
+  const closeMarkArrivalModal = document.getElementById(
+    "closeMarkArrivalModal"
+  );
   const cancelMarkArrivalBtn = document.getElementById("cancelMarkArrivalBtn");
   const selectAttendeeModal = document.getElementById("selectAttendeeModal");
   const markArrivalBtn = document.getElementById("markArrivalBtn");
-  const loadingOverlayArrival = document.getElementById("loadingOverlayArrival");
+  const loadingOverlayArrival = document.getElementById(
+    "loadingOverlayArrival"
+  );
 
-  const registerAttendanceModal = document.getElementById("registerAttendanceModal");
-  const closeRegisterAttendanceModal = document.getElementById("closeRegisterAttendanceModal");
-  const cancelRegisterAttendanceBtn = document.getElementById("cancelRegisterAttendanceBtn");
+  const registerAttendanceModal = document.getElementById(
+    "registerAttendanceModal"
+  );
+  const closeRegisterAttendanceModal = document.getElementById(
+    "closeRegisterAttendanceModal"
+  );
+  const cancelRegisterAttendanceBtn = document.getElementById(
+    "cancelRegisterAttendanceBtn"
+  );
   const attendanceFormModal = document.getElementById("attendanceFormModal");
-  const submitAttendanceModalBtn = document.getElementById("submitAttendanceModalBtn");
-  const loadingOverlayRegister = document.getElementById("loadingOverlayRegister");
+  const submitAttendanceModalBtn = document.getElementById(
+    "submitAttendanceModalBtn"
+  );
+  const loadingOverlayRegister = document.getElementById(
+    "loadingOverlayRegister"
+  );
 
   let cachedAssistances = [];
-  
+
   // Variables para el canvas de firma del modal de registro
   let signatureCtxRegister = null;
   let isSignatureDrawingRegister = false;
@@ -983,7 +1089,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const updateAttendeeSelector = async () => {
     if (!selectAttendeeModal || !selectedEventId) return;
     try {
-      selectAttendeeModal.innerHTML = '<option value="">Cargando asistentes...</option>';
+      selectAttendeeModal.innerHTML =
+        '<option value="">Cargando asistentes...</option>';
       const response = await API.listarAsistencia(selectedEventId);
       const assistances = toArray(response, "asistencias");
       cachedAssistances = assistances.map((a) => ({
@@ -996,26 +1103,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const pendingAssistances = cachedAssistances.filter((a) => !a.asiste);
       if (pendingAssistances.length === 0) {
-        selectAttendeeModal.innerHTML = '<option value="">No hay asistentes pendientes</option>';
+        selectAttendeeModal.innerHTML =
+          '<option value="">No hay asistentes pendientes</option>';
         if (markArrivalBtn) markArrivalBtn.disabled = true;
       } else {
-        selectAttendeeModal.innerHTML = '<option value="">Selecciona un asistente...</option>' +
-          pendingAssistances.map((assist) => 
-            `<option value="${assist.id}">${assist.nombres} ${assist.apellidos} - ${assist.numero_identificacion}</option>`
-          ).join("");
+        selectAttendeeModal.innerHTML =
+          '<option value="">Selecciona un asistente...</option>' +
+          pendingAssistances
+            .map(
+              (assist) =>
+                `<option value="${assist.id}">${assist.nombres} ${assist.apellidos} - ${assist.numero_identificacion}</option>`
+            )
+            .join("");
         if (markArrivalBtn && !selectAttendeeModal.value) {
           markArrivalBtn.disabled = true;
         }
       }
     } catch (error) {
       console.error("Error al cargar asistencias", error);
-      selectAttendeeModal.innerHTML = '<option value="">Error al cargar asistentes</option>';
+      selectAttendeeModal.innerHTML =
+        '<option value="">Error al cargar asistentes</option>';
       if (markArrivalBtn) markArrivalBtn.disabled = true;
     }
   };
 
   const initSignaturePadArrival = () => {
-    const signatureCanvasArrival = document.getElementById("signatureCanvasArrival");
+    const signatureCanvasArrival = document.getElementById(
+      "signatureCanvasArrival"
+    );
     if (!signatureCanvasArrival) return;
 
     signatureCtxArrival = signatureCanvasArrival.getContext("2d");
@@ -1063,10 +1178,17 @@ document.addEventListener("DOMContentLoaded", () => {
       isSignatureDrawingArrival = false;
     });
 
-    const signatureClearBtnArrival = document.getElementById("signatureClearBtnArrival");
+    const signatureClearBtnArrival = document.getElementById(
+      "signatureClearBtnArrival"
+    );
     if (signatureClearBtnArrival) {
       signatureClearBtnArrival.addEventListener("click", () => {
-        signatureCtxArrival.clearRect(0, 0, signatureCanvasArrival.width, signatureCanvasArrival.height);
+        signatureCtxArrival.clearRect(
+          0,
+          0,
+          signatureCanvasArrival.width,
+          signatureCanvasArrival.height
+        );
         signatureIsDirtyArrival = false;
       });
     }
@@ -1104,7 +1226,7 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(blob);
     });
 
-  // Función para optimizar y comprimir la firma
+  // Función para obtener la firma sin comprimir
   const optimizeSignature = (canvas) => {
     return new Promise((resolve) => {
       if (!canvas) {
@@ -1113,107 +1235,47 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // Tamaño muy pequeño para asegurar que quepa en la BD
-        const targetWidth = 80;
-        const targetHeight = 40;
-        const quality = 0.15;
-        
-        // Crear un canvas temporal más pequeño
-        const tempCanvas = document.createElement("canvas");
-        const tempCtx = tempCanvas.getContext("2d");
-        
-        tempCanvas.width = targetWidth;
-        tempCanvas.height = targetHeight;
-        
-        // Dibujar la imagen redimensionada
-        tempCtx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
-        
-        // Convertir a JPEG con calidad muy reducida
-        if (typeof tempCanvas.toBlob === "function") {
-          tempCanvas.toBlob((blob) => {
+        // Convertir el canvas directamente a blob sin comprimir
+        if (typeof canvas.toBlob === "function") {
+          canvas.toBlob((blob) => {
             if (!blob) {
               resolve(null);
               return;
             }
-            // Verificar tamaño del base64 antes de enviar
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64 = reader.result;
-              const base64Data = base64.includes(",") ? base64.split(",")[1] : base64;
-              console.log(`Firma optimizada: tamaño blob = ${blob.size} bytes, base64 = ${base64Data.length} caracteres`);
-              
-              // Si aún es muy grande, reducir más
-              if (base64Data.length > 2000) {
-                console.warn(`Firma aún muy grande (${base64Data.length}), reduciendo más...`);
-                // Reducir a 60x30 con calidad 0.1
-                const smallerCanvas = document.createElement("canvas");
-                const smallerCtx = smallerCanvas.getContext("2d");
-                smallerCanvas.width = 60;
-                smallerCanvas.height = 30;
-                smallerCtx.drawImage(canvas, 0, 0, 60, 30);
-                smallerCanvas.toBlob((smallBlob) => {
-                  if (smallBlob) {
-                    const smallReader = new FileReader();
-                    smallReader.onloadend = () => {
-                      const smallBase64 = smallReader.result;
-                      const smallBase64Data = smallBase64.includes(",") ? smallBase64.split(",")[1] : smallBase64;
-                      console.log(`Firma reducida: tamaño blob = ${smallBlob.size} bytes, base64 = ${smallBase64Data.length} caracteres`);
-                      fetch(smallBase64)
-                        .then((response) => response.blob())
-                        .then(resolve)
-                        .catch(() => resolve(null));
-                    };
-                    smallReader.readAsDataURL(smallBlob);
-                  } else {
-                    resolve(blob);
-                  }
-                }, "image/jpeg", 0.1);
-              } else {
-                resolve(blob);
-              }
-            };
-            reader.readAsDataURL(blob);
-          }, "image/jpeg", quality);
+            console.log(
+              `Firma sin comprimir: tamaño blob = ${blob.size} bytes`
+            );
+            resolve(blob);
+          }, "image/png"); // PNG para mantener calidad sin pérdidas
         } else {
+          // Fallback para navegadores que no soportan toBlob
           try {
-            const dataUrl = tempCanvas.toDataURL("image/jpeg", quality);
-            const base64Data = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
-            console.log(`Firma optimizada: tamaño base64 = ${base64Data.length} caracteres`);
-            
-            if (base64Data.length > 2000) {
-              // Reducir más
-              const smallerCanvas = document.createElement("canvas");
-              const smallerCtx = smallerCanvas.getContext("2d");
-              smallerCanvas.width = 60;
-              smallerCanvas.height = 30;
-              smallerCtx.drawImage(canvas, 0, 0, 60, 30);
-              const smallerDataUrl = smallerCanvas.toDataURL("image/jpeg", 0.1);
-              const smallerBase64Data = smallerDataUrl.includes(",") ? smallerDataUrl.split(",")[1] : smallerDataUrl;
-              console.log(`Firma reducida: tamaño base64 = ${smallerBase64Data.length} caracteres`);
-              fetch(smallerDataUrl)
-                .then((response) => response.blob())
-                .then(resolve)
-                .catch(() => resolve(null));
-            } else {
-              fetch(dataUrl)
-                .then((response) => response.blob())
-                .then(resolve)
-                .catch(() => resolve(null));
-            }
+            const dataUrl = canvas.toDataURL("image/png");
+            fetch(dataUrl)
+              .then((response) => response.blob())
+              .then((blob) => {
+                console.log(
+                  `Firma sin comprimir: tamaño blob = ${blob.size} bytes`
+                );
+                resolve(blob);
+              })
+              .catch(() => resolve(null));
           } catch (error) {
-            console.error("Error al optimizar firma:", error);
+            console.error("Error al obtener firma:", error);
             resolve(null);
           }
         }
       } catch (error) {
-        console.error("Error al optimizar firma:", error);
+        console.error("Error al obtener firma:", error);
         resolve(null);
       }
     });
   };
 
   const getSignatureBlobArrival = () => {
-    const signatureCanvasArrival = document.getElementById("signatureCanvasArrival");
+    const signatureCanvasArrival = document.getElementById(
+      "signatureCanvasArrival"
+    );
     if (!signatureCanvasArrival) {
       return Promise.resolve(null);
     }
@@ -1225,13 +1287,16 @@ document.addEventListener("DOMContentLoaded", () => {
   let signatureIsDirtyArrival = false;
 
   const handleMarkArrival = async () => {
-    if (!selectedEventId || !selectAttendeeModal || !selectAttendeeModal.value) return;
+    if (!selectedEventId || !selectAttendeeModal || !selectAttendeeModal.value)
+      return;
 
     const asistenciaId = Number(selectAttendeeModal.value);
     if (!asistenciaId) return;
 
     let signatureBase64 = null;
-    const signatureCanvasArrival = document.getElementById("signatureCanvasArrival");
+    const signatureCanvasArrival = document.getElementById(
+      "signatureCanvasArrival"
+    );
     if (signatureCanvasArrival && signatureIsDirtyArrival) {
       const signatureBlob = await getSignatureBlobArrival();
       if (signatureBlob) {
@@ -1282,15 +1347,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (attendanceFormModal) {
       attendanceFormModal.reset();
     }
-    const signatureCanvasRegister = document.getElementById("signatureCanvasRegister");
+    const signatureCanvasRegister = document.getElementById(
+      "signatureCanvasRegister"
+    );
     if (signatureCanvasRegister && signatureCtxRegister) {
-      signatureCtxRegister.clearRect(0, 0, signatureCanvasRegister.width, signatureCanvasRegister.height);
+      signatureCtxRegister.clearRect(
+        0,
+        0,
+        signatureCanvasRegister.width,
+        signatureCanvasRegister.height
+      );
       signatureIsDirtyRegister = false;
     }
   };
 
   const getSignatureBlobRegister = () => {
-    const signatureCanvasRegister = document.getElementById("signatureCanvasRegister");
+    const signatureCanvasRegister = document.getElementById(
+      "signatureCanvasRegister"
+    );
     if (!signatureCanvasRegister) {
       return Promise.resolve(null);
     }
@@ -1298,7 +1372,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const initSignaturePadRegister = () => {
-    const signatureCanvasRegister = document.getElementById("signatureCanvasRegister");
+    const signatureCanvasRegister = document.getElementById(
+      "signatureCanvasRegister"
+    );
     if (!signatureCanvasRegister) return;
 
     signatureCtxRegister = signatureCanvasRegister.getContext("2d");
@@ -1346,10 +1422,17 @@ document.addEventListener("DOMContentLoaded", () => {
       isSignatureDrawingRegister = false;
     });
 
-    const signatureClearBtnRegister = document.getElementById("signatureClearBtnRegister");
+    const signatureClearBtnRegister = document.getElementById(
+      "signatureClearBtnRegister"
+    );
     if (signatureClearBtnRegister) {
       signatureClearBtnRegister.addEventListener("click", () => {
-        signatureCtxRegister.clearRect(0, 0, signatureCanvasRegister.width, signatureCanvasRegister.height);
+        signatureCtxRegister.clearRect(
+          0,
+          0,
+          signatureCanvasRegister.width,
+          signatureCanvasRegister.height
+        );
         signatureIsDirtyRegister = false;
       });
     }
@@ -1362,13 +1445,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!session) return;
 
     const formValues = {
-      numero_identificacion: document.getElementById("attendeeDocumentModal")?.value.trim() || "",
-      nombres: document.getElementById("attendeeFirstNameModal")?.value.trim() || "",
-      apellidos: document.getElementById("attendeeLastNameModal")?.value.trim() || "",
-      correo_electronico: document.getElementById("attendeeEmailModal")?.value.trim() || "",
-      numero_celular: document.getElementById("attendeePhoneModal")?.value.trim() || "",
+      numero_identificacion:
+        document.getElementById("attendeeDocumentModal")?.value.trim() || "",
+      nombres:
+        document.getElementById("attendeeFirstNameModal")?.value.trim() || "",
+      apellidos:
+        document.getElementById("attendeeLastNameModal")?.value.trim() || "",
+      correo_electronico:
+        document.getElementById("attendeeEmailModal")?.value.trim() || "",
+      numero_celular:
+        document.getElementById("attendeePhoneModal")?.value.trim() || "",
       cargo: document.getElementById("attendeeRoleModal")?.value.trim() || "",
-      empresa: document.getElementById("attendeeCompanyModal")?.value.trim() || "",
+      empresa:
+        document.getElementById("attendeeCompanyModal")?.value.trim() || "",
       invitado: document.getElementById("attendeeGuestModal")?.value || "0",
     };
 
@@ -1378,71 +1467,42 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Obtener firma exactamente como en asistencia.js que funciona
-    let signatureBlob = null;
     let signatureBase64 = null;
-
-    const signatureCanvasRegister = document.getElementById("signatureCanvasRegister");
+    const signatureCanvasRegister = document.getElementById(
+      "signatureCanvasRegister"
+    );
     if (signatureCanvasRegister && signatureIsDirtyRegister) {
-      signatureBlob = await getSignatureBlobRegister();
+      const signatureBlob = await getSignatureBlobRegister();
       if (signatureBlob) {
         signatureBase64 = await blobToBase64(signatureBlob);
       }
     }
 
-    // Generar firmaNombre siempre (el backend lo requiere)
-    const firmaNombre = signatureBase64 
-      ? `firma_${formValues.numero_identificacion}_${Date.now()}.png`
-      : `sin_firma_${formValues.numero_identificacion}_${Date.now()}.png`;
-
     const submitData = new FormData();
-    // IMPORTANTE: Enviar firmaNombre PRIMERO para asegurar que el servidor lo reciba
-    submitData.append("firmaNombre", firmaNombre);
-    
     submitData.append("evento_id", selectedEventId);
     submitData.append("user_id", session.id);
-    submitData.append("numero_identificacion", formValues.numero_identificacion);
+    submitData.append(
+      "numero_identificacion",
+      formValues.numero_identificacion
+    );
     submitData.append("nombres", formValues.nombres);
     submitData.append("apellidos", formValues.apellidos);
-    submitData.append(
-      "correo_electronico",
-      formValues.correo_electronico || ""
-    );
-    submitData.append("numero_celular", formValues.numero_celular || "");
-    submitData.append("cargo", formValues.cargo || "");
-    submitData.append("empresa", formValues.empresa || "");
+    submitData.append("correo_electronico", formValues.correo_electronico);
+    submitData.append("numero_celular", formValues.numero_celular);
+    submitData.append("cargo", formValues.cargo);
+    submitData.append("empresa", formValues.empresa);
     submitData.append("invitado", formValues.invitado);
     submitData.append("asiste", "1");
     submitData.append("estado_id", "1");
 
-    // Enviar firma solo si existe (como en asistencia.js que funciona)
+    // Enviar firma y firmaNombre solo si existe
     if (signatureBase64) {
+      const firmaNombre = `firma_${
+        formValues.numero_identificacion
+      }_${Date.now()}.png`;
       submitData.append("firma", signatureBase64);
+      submitData.append("firmaNombre", firmaNombre);
     }
-
-    // LOGS DETALLADOS: Verificar TODO lo que se está enviando
-    console.log("=== INICIO LOGS DETALLADOS (ADMIN) ===");
-    console.log("1. Datos del formulario:", formValues);
-    console.log("2. Firma obtenida:", {
-      tieneFirma: !!signatureBase64,
-      firmaLength: signatureBase64 ? signatureBase64.length : 0,
-      firmaBase64: signatureBase64 ? signatureBase64.substring(0, 50) + "..." : null
-    });
-    console.log("3. firmaNombre generado:", firmaNombre);
-    console.log("4. Todas las claves del FormData:", Array.from(submitData.keys()));
-    console.log("5. Todos los valores del FormData:");
-    for (const [key, value] of submitData.entries()) {
-      const displayValue = key === "firma" && value ? 
-        `${value.substring(0, 50)}... (${value.length} caracteres)` : 
-        value;
-      console.log(`   - ${key}:`, displayValue);
-    }
-    console.log("6. Verificación específica de firmaNombre:");
-    const firmaNombreValue = submitData.get("firmaNombre");
-    console.log("   - submitData.get('firmaNombre'):", firmaNombreValue);
-    console.log("   - Tipo:", typeof firmaNombreValue);
-    console.log("   - Existe:", firmaNombreValue !== null && firmaNombreValue !== undefined);
-    console.log("=== FIN LOGS DETALLADOS (ADMIN) ===");
 
     if (loadingOverlayRegister) loadingOverlayRegister.hidden = false;
     if (submitAttendanceModalBtn) {
@@ -1465,9 +1525,169 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // Funciones para listar asistentes
+  const listAttendeesModal = document.getElementById("listAttendeesModal");
+  const closeListAttendeesModal = document.getElementById(
+    "closeListAttendeesModal"
+  );
+  const closeListAttendeesModalBtn = document.getElementById(
+    "closeListAttendeesModalBtn"
+  );
+  const attendeesTableBody = document.getElementById("attendeesTableBody");
+  const attendeesSearch = document.getElementById("attendeesSearch");
+  const filterAllAttendees = document.getElementById("filterAllAttendees");
+  const filterArrivedAttendees = document.getElementById(
+    "filterArrivedAttendees"
+  );
+  const filterNotArrivedAttendees = document.getElementById(
+    "filterNotArrivedAttendees"
+  );
+  const loadingOverlayAttendees = document.getElementById(
+    "loadingOverlayAttendees"
+  );
+
+  let allAttendees = [];
+  let currentFilter = "all"; // "all", "arrived", "notArrived"
+
+  const openListAttendeesModal = async () => {
+    if (!listAttendeesModal || !selectedEventId) return;
+    listAttendeesModal.hidden = false;
+    currentFilter = "all";
+    updateFilterButtons();
+    if (attendeesSearch) attendeesSearch.value = "";
+    await loadAttendees();
+  };
+
+  const closeListAttendeesModalFunc = () => {
+    if (!listAttendeesModal) return;
+    listAttendeesModal.hidden = true;
+    allAttendees = [];
+    if (attendeesTableBody) {
+      attendeesTableBody.innerHTML =
+        '<tr><td colspan="7">Cargando asistentes...</td></tr>';
+    }
+  };
+
+  const loadAttendees = async () => {
+    if (!selectedEventId || !attendeesTableBody) return;
+
+    if (loadingOverlayAttendees) loadingOverlayAttendees.hidden = false;
+
+    try {
+      const response = await API.listarAsistencia(selectedEventId);
+      allAttendees = toArray(response, "asistencias");
+      renderAttendees();
+    } catch (error) {
+      console.error("Error al cargar asistentes", error);
+      if (attendeesTableBody) {
+        attendeesTableBody.innerHTML =
+          '<tr><td colspan="7">Error al cargar asistentes</td></tr>';
+      }
+    } finally {
+      if (loadingOverlayAttendees) loadingOverlayAttendees.hidden = true;
+    }
+  };
+
+  const renderAttendees = () => {
+    if (!attendeesTableBody) return;
+
+    let filtered = [...allAttendees];
+
+    // Aplicar filtro de estado
+    if (currentFilter === "arrived") {
+      filtered = filtered.filter((a) => Number(a.asiste) === 1);
+    } else if (currentFilter === "notArrived") {
+      filtered = filtered.filter((a) => Number(a.asiste) !== 1);
+    }
+
+    // Aplicar búsqueda
+    const searchTerm = attendeesSearch?.value.trim().toLowerCase() || "";
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (a) =>
+          (a.numero_identificacion || "").toLowerCase().includes(searchTerm) ||
+          (a.nombres || "").toLowerCase().includes(searchTerm) ||
+          (a.apellidos || "").toLowerCase().includes(searchTerm) ||
+          (a.correo_electronico || "").toLowerCase().includes(searchTerm) ||
+          (a.empresa || "").toLowerCase().includes(searchTerm)
+      );
+    }
+
+    if (!filtered.length) {
+      attendeesTableBody.innerHTML =
+        '<tr><td colspan="7">No se encontraron asistentes</td></tr>';
+      return;
+    }
+
+    attendeesTableBody.innerHTML = filtered
+      .map((assist) => {
+        const hasSignature = !!assist.firma;
+        const statusColor = Number(assist.asiste) === 1 ? "#22c55e" : "#ef4444";
+        const statusText = Number(assist.asiste) === 1 ? "Llegó" : "No llegó";
+        return `
+          <tr>
+            <td data-label="Documento">${
+              assist.numero_identificacion || "—"
+            }</td>
+            <td data-label="Nombre Completo">${assist.nombres || ""} ${
+          assist.apellidos || ""
+        }</td>
+            <td data-label="Correo" class="hide-mobile">${
+              assist.correo_electronico || "—"
+            }</td>
+            <td data-label="Teléfono" class="hide-mobile">${
+              assist.numero_celular || "—"
+            }</td>
+            <td data-label="Estado">
+              <span class="status-indicator" style="background-color: ${statusColor}"></span>
+              ${statusText}
+            </td>
+            <td data-label="Empresa" class="hide-mobile">${
+              assist.empresa || "—"
+            }</td>
+            <td data-label="Firma">${
+              hasSignature ? '<span class="text-muted">Firmado</span>' : "—"
+            }</td>
+          </tr>
+        `;
+      })
+      .join("");
+  };
+
+  const updateFilterButtons = () => {
+    if (filterAllAttendees) {
+      if (currentFilter === "all") {
+        filterAllAttendees.classList.add("btn-primary");
+        filterAllAttendees.classList.remove("btn-outline");
+      } else {
+        filterAllAttendees.classList.remove("btn-primary");
+        filterAllAttendees.classList.add("btn-outline");
+      }
+    }
+    if (filterArrivedAttendees) {
+      if (currentFilter === "arrived") {
+        filterArrivedAttendees.classList.add("btn-primary");
+        filterArrivedAttendees.classList.remove("btn-outline");
+      } else {
+        filterArrivedAttendees.classList.remove("btn-primary");
+        filterArrivedAttendees.classList.add("btn-outline");
+      }
+    }
+    if (filterNotArrivedAttendees) {
+      if (currentFilter === "notArrived") {
+        filterNotArrivedAttendees.classList.add("btn-primary");
+        filterNotArrivedAttendees.classList.remove("btn-outline");
+      } else {
+        filterNotArrivedAttendees.classList.remove("btn-primary");
+        filterNotArrivedAttendees.classList.add("btn-outline");
+      }
+    }
+  };
+
   // Event listeners para los botones de acción
   const viewEditBtn = document.getElementById("viewEditEventBtn");
   const attendanceBtn = document.getElementById("attendanceEventBtn");
+  const listAttendeesBtn = document.getElementById("listAttendeesBtn");
   const excelBtn = document.getElementById("downloadExcelBtn");
   const pdfBtn = document.getElementById("generatePdfBtn");
 
@@ -1478,7 +1698,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  
+
   if (excelBtn) {
     excelBtn.addEventListener("click", () => {
       if (selectedEventId) {
@@ -1486,23 +1706,29 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  
+
   if (toggleEditModeBtn) {
     toggleEditModeBtn.addEventListener("click", () => {
       setEditMode(!isEditMode);
     });
   }
-  
+
   if (saveEventBtn) {
     saveEventBtn.addEventListener("click", handleSaveEvent);
   }
-  
+
   if (closeViewEditEventModal) {
-    closeViewEditEventModal.addEventListener("click", closeViewEditEventModalFunc);
+    closeViewEditEventModal.addEventListener(
+      "click",
+      closeViewEditEventModalFunc
+    );
   }
-  
+
   if (cancelViewEditEventBtn) {
-    cancelViewEditEventBtn.addEventListener("click", closeViewEditEventModalFunc);
+    cancelViewEditEventBtn.addEventListener(
+      "click",
+      closeViewEditEventModalFunc
+    );
   }
 
   if (markArrivalModalBtn) {
@@ -1517,6 +1743,14 @@ document.addEventListener("DOMContentLoaded", () => {
     attendanceBtn.addEventListener("click", () => {
       if (selectedEventId) {
         openRegisterAttendanceModal();
+      }
+    });
+  }
+
+  if (listAttendeesBtn) {
+    listAttendeesBtn.addEventListener("click", () => {
+      if (selectedEventId) {
+        openListAttendeesModal();
       }
     });
   }
@@ -1559,11 +1793,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (closeRegisterAttendanceModal) {
-    closeRegisterAttendanceModal.addEventListener("click", closeRegisterAttendanceModalFunc);
+    closeRegisterAttendanceModal.addEventListener(
+      "click",
+      closeRegisterAttendanceModalFunc
+    );
   }
 
   if (cancelRegisterAttendanceBtn) {
-    cancelRegisterAttendanceBtn.addEventListener("click", closeRegisterAttendanceModalFunc);
+    cancelRegisterAttendanceBtn.addEventListener(
+      "click",
+      closeRegisterAttendanceModalFunc
+    );
   }
 
   if (registerAttendanceModal) {
@@ -1575,7 +1815,55 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (submitAttendanceModalBtn) {
-    submitAttendanceModalBtn.addEventListener("click", handleRegisterAttendance);
+    submitAttendanceModalBtn.addEventListener(
+      "click",
+      handleRegisterAttendance
+    );
+  }
+
+  // Event listeners para modal de asistentes
+  if (closeListAttendeesModal) {
+    closeListAttendeesModal.addEventListener(
+      "click",
+      closeListAttendeesModalFunc
+    );
+  }
+  if (closeListAttendeesModalBtn) {
+    closeListAttendeesModalBtn.addEventListener(
+      "click",
+      closeListAttendeesModalFunc
+    );
+  }
+  if (listAttendeesModal) {
+    listAttendeesModal.addEventListener("click", (e) => {
+      if (e.target === listAttendeesModal) {
+        closeListAttendeesModalFunc();
+      }
+    });
+  }
+  if (filterAllAttendees) {
+    filterAllAttendees.addEventListener("click", () => {
+      currentFilter = "all";
+      updateFilterButtons();
+      renderAttendees();
+    });
+  }
+  if (filterArrivedAttendees) {
+    filterArrivedAttendees.addEventListener("click", () => {
+      currentFilter = "arrived";
+      updateFilterButtons();
+      renderAttendees();
+    });
+  }
+  if (filterNotArrivedAttendees) {
+    filterNotArrivedAttendees.addEventListener("click", () => {
+      currentFilter = "notArrived";
+      updateFilterButtons();
+      renderAttendees();
+    });
+  }
+  if (attendeesSearch) {
+    attendeesSearch.addEventListener("input", renderAttendees);
   }
 
   // Cerrar modales con ESC
@@ -1586,6 +1874,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (registerAttendanceModal && !registerAttendanceModal.hidden) {
         closeRegisterAttendanceModalFunc();
+      }
+      if (listAttendeesModal && !listAttendeesModal.hidden) {
+        closeListAttendeesModalFunc();
       }
     }
   });
@@ -1636,5 +1927,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
   boot();
 });
-
-

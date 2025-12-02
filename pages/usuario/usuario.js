@@ -338,6 +338,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const viewEditBtn = document.getElementById("viewEditEventBtn");
     const markArrivalBtn = document.getElementById("markArrivalModalBtn");
     const attendanceBtn = document.getElementById("attendanceEventBtn");
+    const listAttendeesBtn = document.getElementById("listAttendeesBtn");
     const excelBtn = document.getElementById("downloadExcelBtn");
     const pdfBtn = document.getElementById("generatePdfBtn");
 
@@ -346,6 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (viewEditBtn) viewEditBtn.disabled = !hasSelection;
     if (markArrivalBtn) markArrivalBtn.disabled = !hasSelection;
     if (attendanceBtn) attendanceBtn.disabled = !hasSelection;
+    if (listAttendeesBtn) listAttendeesBtn.disabled = !hasSelection;
     if (excelBtn) excelBtn.disabled = !hasSelection;
     if (pdfBtn) pdfBtn.disabled = !hasSelection;
   };
@@ -1097,6 +1099,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
   // Función para optimizar y comprimir la firma - devuelve base64 directamente
+  // Función para obtener la firma sin comprimir
   const optimizeSignature = (canvas) => {
     return new Promise((resolve) => {
       if (!canvas) {
@@ -1105,70 +1108,34 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        // Función recursiva para reducir hasta que quepa en la BD (máximo 500 caracteres)
-        const compressToFit = (sourceCanvas, width, height, quality, maxSize = 500) => {
-          const tempCanvas = document.createElement("canvas");
-          const tempCtx = tempCanvas.getContext("2d");
-          
-          tempCanvas.width = width;
-          tempCanvas.height = height;
-          
-          // Dibujar la imagen redimensionada con fondo blanco
-          tempCtx.fillStyle = "#FFFFFF";
-          tempCtx.fillRect(0, 0, width, height);
-          tempCtx.drawImage(sourceCanvas, 0, 0, width, height);
-          
-          // Convertir a JPEG con calidad reducida
-          const dataUrl = tempCanvas.toDataURL("image/jpeg", quality);
-          const base64Data = dataUrl.includes(",") ? dataUrl.split(",")[1] : dataUrl;
-          
-          console.log(`Firma optimizada: ${width}x${height}, calidad ${quality.toFixed(2)}, base64 = ${base64Data.length} caracteres`);
-          
-          // Si aún es muy grande y podemos reducir más, intentar con tamaño/calidad menor
-          if (base64Data.length > maxSize) {
-            if (width > 60 && height > 30) {
-              // Reducir tamaño primero
-              return compressToFit(sourceCanvas, Math.floor(width * 0.75), Math.floor(height * 0.75), quality, maxSize);
-            } else if (quality > 0.1) {
-              // Reducir calidad
-              return compressToFit(sourceCanvas, width, height, Math.max(0.1, quality * 0.6), maxSize);
-            } else if (quality > 0.05) {
-              // Última reducción de calidad
-              return compressToFit(sourceCanvas, width, height, 0.05, maxSize);
-            } else if (width > 50 && height > 25) {
-              // Última reducción de tamaño
-              return compressToFit(sourceCanvas, 50, 25, 0.05, maxSize);
+        // Convertir el canvas directamente a blob sin comprimir
+        if (typeof canvas.toBlob === "function") {
+          canvas.toBlob((blob) => {
+            if (!blob) {
+              resolve(null);
+              return;
             }
-          }
-          
-          return base64Data;
-        };
-        
-        // Empezar con un tamaño pequeño y calidad baja para asegurar que quepa
-        const base64Data = compressToFit(canvas, 120, 60, 0.25, 500);
-        
-        if (base64Data && base64Data.length <= 500) {
-          // Convertir base64 a blob para mantener compatibilidad con el código existente
-          try {
-            const byteCharacters = atob(base64Data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: "image/jpeg" });
-            console.log(`Firma final: blob = ${blob.size} bytes, base64 = ${base64Data.length} caracteres`);
+            console.log(`Firma sin comprimir: tamaño blob = ${blob.size} bytes`);
             resolve(blob);
+          }, "image/png"); // PNG para mantener calidad sin pérdidas
+        } else {
+          // Fallback para navegadores que no soportan toBlob
+          try {
+            const dataUrl = canvas.toDataURL("image/png");
+            fetch(dataUrl)
+              .then((response) => response.blob())
+              .then((blob) => {
+                console.log(`Firma sin comprimir: tamaño blob = ${blob.size} bytes`);
+                resolve(blob);
+              })
+              .catch(() => resolve(null));
           } catch (error) {
-            console.error("Error al convertir base64 a blob:", error);
+            console.error("Error al obtener firma:", error);
             resolve(null);
           }
-        } else {
-          console.warn(`Firma aún muy grande después de optimización: ${base64Data?.length || 0} caracteres`);
-          resolve(null);
         }
       } catch (error) {
-        console.error("Error al optimizar firma:", error);
+        console.error("Error al obtener firma:", error);
         resolve(null);
       }
     });
@@ -1342,71 +1309,47 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Obtener firma exactamente como en asistencia.js que funciona
-    let signatureBlob = null;
     let signatureBase64 = null;
-
     const signatureCanvasRegister = document.getElementById("signatureCanvasRegister");
+    // Usar signatureIsDirtyRegister para verificar si hay firma (igual que en asistencia.js)
     if (signatureCanvasRegister && signatureIsDirtyRegister) {
-      signatureBlob = await getSignatureBlobRegister();
+      const signatureBlob = await getSignatureBlobRegister();
       if (signatureBlob) {
         signatureBase64 = await blobToBase64(signatureBlob);
+        console.log("Firma obtenida, longitud base64:", signatureBase64 ? signatureBase64.length : 0);
+      } else {
+        console.warn("No se pudo obtener el blob de la firma");
       }
     }
 
-    // Generar firmaNombre siempre (el backend lo requiere)
-    const firmaNombre = signatureBase64 
-      ? `firma_${formValues.numero_identificacion}_${Date.now()}.png`
-      : `sin_firma_${formValues.numero_identificacion}_${Date.now()}.png`;
-
     const submitData = new FormData();
-    // IMPORTANTE: Enviar firmaNombre PRIMERO para asegurar que el servidor lo reciba
-    submitData.append("firmaNombre", firmaNombre);
-    
     submitData.append("evento_id", selectedEventId);
     submitData.append("user_id", session.id);
     submitData.append("numero_identificacion", formValues.numero_identificacion);
     submitData.append("nombres", formValues.nombres);
     submitData.append("apellidos", formValues.apellidos);
-    submitData.append(
-      "correo_electronico",
-      formValues.correo_electronico || ""
-    );
-    submitData.append("numero_celular", formValues.numero_celular || "");
-    submitData.append("cargo", formValues.cargo || "");
-    submitData.append("empresa", formValues.empresa || "");
+    submitData.append("correo_electronico", formValues.correo_electronico);
+    submitData.append("numero_celular", formValues.numero_celular);
+    submitData.append("cargo", formValues.cargo);
+    submitData.append("empresa", formValues.empresa);
     submitData.append("invitado", formValues.invitado);
     submitData.append("asiste", "1");
     submitData.append("estado_id", "1");
-
-    // Enviar firma solo si existe (como en asistencia.js que funciona)
+    
+    // Enviar firma y firmaNombre solo si existe
     if (signatureBase64) {
+      const firmaNombre = `firma_${formValues.numero_identificacion}_${Date.now()}.png`;
       submitData.append("firma", signatureBase64);
+      submitData.append("firmaNombre", firmaNombre);
     }
     
-    // LOGS DETALLADOS: Verificar TODO lo que se está enviando
-    console.log("=== INICIO LOGS DETALLADOS ===");
-    console.log("1. Datos del formulario:", formValues);
-    console.log("2. Firma obtenida:", {
+    // Debug: Verificar qué se está enviando
+    console.log("Datos a enviar:", {
+      evento_id: selectedEventId,
       tieneFirma: !!signatureBase64,
       firmaLength: signatureBase64 ? signatureBase64.length : 0,
-      firmaBase64: signatureBase64 ? signatureBase64.substring(0, 50) + "..." : null
+      formDataKeys: Array.from(submitData.keys())
     });
-    console.log("3. firmaNombre generado:", firmaNombre);
-    console.log("4. Todas las claves del FormData:", Array.from(submitData.keys()));
-    console.log("5. Todos los valores del FormData:");
-    for (const [key, value] of submitData.entries()) {
-      const displayValue = key === "firma" && value ? 
-        `${value.substring(0, 50)}... (${value.length} caracteres)` : 
-        value;
-      console.log(`   - ${key}:`, displayValue);
-    }
-    console.log("6. Verificación específica de firmaNombre:");
-    const firmaNombreValue = submitData.get("firmaNombre");
-    console.log("   - submitData.get('firmaNombre'):", firmaNombreValue);
-    console.log("   - Tipo:", typeof firmaNombreValue);
-    console.log("   - Existe:", firmaNombreValue !== null && firmaNombreValue !== undefined);
-    console.log("=== FIN LOGS DETALLADOS ===");
 
     if (loadingOverlayRegister) loadingOverlayRegister.hidden = false;
     if (submitAttendanceModalBtn) {
@@ -1429,9 +1372,144 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // Funciones para listar asistentes
+  const listAttendeesModal = document.getElementById("listAttendeesModal");
+  const closeListAttendeesModal = document.getElementById("closeListAttendeesModal");
+  const closeListAttendeesModalBtn = document.getElementById("closeListAttendeesModalBtn");
+  const attendeesTableBody = document.getElementById("attendeesTableBody");
+  const attendeesSearch = document.getElementById("attendeesSearch");
+  const filterAllAttendees = document.getElementById("filterAllAttendees");
+  const filterArrivedAttendees = document.getElementById("filterArrivedAttendees");
+  const filterNotArrivedAttendees = document.getElementById("filterNotArrivedAttendees");
+  const loadingOverlayAttendees = document.getElementById("loadingOverlayAttendees");
+
+  let allAttendees = [];
+  let currentFilter = "all"; // "all", "arrived", "notArrived"
+
+  const openListAttendeesModal = async () => {
+    if (!listAttendeesModal || !selectedEventId) return;
+    listAttendeesModal.hidden = false;
+    currentFilter = "all";
+    updateFilterButtons();
+    if (attendeesSearch) attendeesSearch.value = "";
+    await loadAttendees();
+  };
+
+  const closeListAttendeesModalFunc = () => {
+    if (!listAttendeesModal) return;
+    listAttendeesModal.hidden = true;
+    allAttendees = [];
+    if (attendeesTableBody) {
+      attendeesTableBody.innerHTML = '<tr><td colspan="7">Cargando asistentes...</td></tr>';
+    }
+  };
+
+  const loadAttendees = async () => {
+    if (!selectedEventId || !attendeesTableBody) return;
+
+    if (loadingOverlayAttendees) loadingOverlayAttendees.hidden = false;
+
+    try {
+      const response = await API.listarAsistencia(selectedEventId);
+      allAttendees = toArray(response, "asistencias");
+      renderAttendees();
+    } catch (error) {
+      console.error("Error al cargar asistentes", error);
+      if (attendeesTableBody) {
+        attendeesTableBody.innerHTML = '<tr><td colspan="7">Error al cargar asistentes</td></tr>';
+      }
+    } finally {
+      if (loadingOverlayAttendees) loadingOverlayAttendees.hidden = true;
+    }
+  };
+
+  const renderAttendees = () => {
+    if (!attendeesTableBody) return;
+
+    let filtered = [...allAttendees];
+
+    // Aplicar filtro de estado
+    if (currentFilter === "arrived") {
+      filtered = filtered.filter((a) => Number(a.asiste) === 1);
+    } else if (currentFilter === "notArrived") {
+      filtered = filtered.filter((a) => Number(a.asiste) !== 1);
+    }
+
+    // Aplicar búsqueda
+    const searchTerm = attendeesSearch?.value.trim().toLowerCase() || "";
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (a) =>
+          (a.numero_identificacion || "").toLowerCase().includes(searchTerm) ||
+          (a.nombres || "").toLowerCase().includes(searchTerm) ||
+          (a.apellidos || "").toLowerCase().includes(searchTerm) ||
+          (a.correo_electronico || "").toLowerCase().includes(searchTerm) ||
+          (a.empresa || "").toLowerCase().includes(searchTerm)
+      );
+    }
+
+    if (!filtered.length) {
+      attendeesTableBody.innerHTML = '<tr><td colspan="7">No se encontraron asistentes</td></tr>';
+      return;
+    }
+
+    attendeesTableBody.innerHTML = filtered
+      .map((assist) => {
+        const hasSignature = !!assist.firma;
+        const statusColor = Number(assist.asiste) === 1 ? "#22c55e" : "#ef4444";
+        const statusText = Number(assist.asiste) === 1 ? "Llegó" : "No llegó";
+        return `
+          <tr>
+            <td data-label="Documento">${assist.numero_identificacion || "—"}</td>
+            <td data-label="Nombre Completo">${assist.nombres || ""} ${assist.apellidos || ""}</td>
+            <td data-label="Correo" class="hide-mobile">${assist.correo_electronico || "—"}</td>
+            <td data-label="Teléfono" class="hide-mobile">${assist.numero_celular || "—"}</td>
+            <td data-label="Estado">
+              <span class="status-indicator" style="background-color: ${statusColor}"></span>
+              ${statusText}
+            </td>
+            <td data-label="Empresa" class="hide-mobile">${assist.empresa || "—"}</td>
+            <td data-label="Firma">${hasSignature ? '<span class="text-muted">Firmado</span>' : "—"}</td>
+          </tr>
+        `;
+      })
+      .join("");
+  };
+
+  const updateFilterButtons = () => {
+    if (filterAllAttendees) {
+      if (currentFilter === "all") {
+        filterAllAttendees.classList.add("btn-primary");
+        filterAllAttendees.classList.remove("btn-outline");
+      } else {
+        filterAllAttendees.classList.remove("btn-primary");
+        filterAllAttendees.classList.add("btn-outline");
+      }
+    }
+    if (filterArrivedAttendees) {
+      if (currentFilter === "arrived") {
+        filterArrivedAttendees.classList.add("btn-primary");
+        filterArrivedAttendees.classList.remove("btn-outline");
+      } else {
+        filterArrivedAttendees.classList.remove("btn-primary");
+        filterArrivedAttendees.classList.add("btn-outline");
+      }
+    }
+    if (filterNotArrivedAttendees) {
+      if (currentFilter === "notArrived") {
+        filterNotArrivedAttendees.classList.add("btn-primary");
+        filterNotArrivedAttendees.classList.remove("btn-outline");
+      } else {
+        filterNotArrivedAttendees.classList.remove("btn-primary");
+        filterNotArrivedAttendees.classList.add("btn-outline");
+      }
+    }
+  };
+
   // Event listeners para los botones de acción
   const viewEditBtn = document.getElementById("viewEditEventBtn");
   const attendanceBtn = document.getElementById("attendanceEventBtn");
+  const listAttendeesBtn = document.getElementById("listAttendeesBtn");
   const excelBtn = document.getElementById("downloadExcelBtn");
   const pdfBtn = document.getElementById("generatePdfBtn");
 
@@ -1481,6 +1559,14 @@ document.addEventListener("DOMContentLoaded", () => {
     attendanceBtn.addEventListener("click", () => {
       if (selectedEventId) {
         openRegisterAttendanceModal();
+      }
+    });
+  }
+
+  if (listAttendeesBtn) {
+    listAttendeesBtn.addEventListener("click", () => {
+      if (selectedEventId) {
+        openListAttendeesModal();
       }
     });
   }
@@ -1542,6 +1628,45 @@ document.addEventListener("DOMContentLoaded", () => {
     submitAttendanceModalBtn.addEventListener("click", handleRegisterAttendance);
   }
 
+  // Event listeners para modal de asistentes
+  if (closeListAttendeesModal) {
+    closeListAttendeesModal.addEventListener("click", closeListAttendeesModalFunc);
+  }
+  if (closeListAttendeesModalBtn) {
+    closeListAttendeesModalBtn.addEventListener("click", closeListAttendeesModalFunc);
+  }
+  if (listAttendeesModal) {
+    listAttendeesModal.addEventListener("click", (e) => {
+      if (e.target === listAttendeesModal) {
+        closeListAttendeesModalFunc();
+      }
+    });
+  }
+  if (filterAllAttendees) {
+    filterAllAttendees.addEventListener("click", () => {
+      currentFilter = "all";
+      updateFilterButtons();
+      renderAttendees();
+    });
+  }
+  if (filterArrivedAttendees) {
+    filterArrivedAttendees.addEventListener("click", () => {
+      currentFilter = "arrived";
+      updateFilterButtons();
+      renderAttendees();
+    });
+  }
+  if (filterNotArrivedAttendees) {
+    filterNotArrivedAttendees.addEventListener("click", () => {
+      currentFilter = "notArrived";
+      updateFilterButtons();
+      renderAttendees();
+    });
+  }
+  if (attendeesSearch) {
+    attendeesSearch.addEventListener("input", renderAttendees);
+  }
+
   // Cerrar modales con ESC
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") {
@@ -1550,6 +1675,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (registerAttendanceModal && !registerAttendanceModal.hidden) {
         closeRegisterAttendanceModalFunc();
+      }
+      if (listAttendeesModal && !listAttendeesModal.hidden) {
+        closeListAttendeesModalFunc();
       }
     }
   });

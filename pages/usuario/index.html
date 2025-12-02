@@ -28,6 +28,7 @@
             <button id="viewEditEventBtn" class="btn btn-outline" disabled>Ver/Editar evento</button>
             <button id="markArrivalModalBtn" class="btn btn-outline" disabled>Marcar llegada</button>
             <button id="attendanceEventBtn" class="btn btn-outline" disabled>Registrar asistencia</button>
+            <button id="listAttendeesBtn" class="btn btn-outline" disabled>Listar asistentes</button>
             <button id="downloadExcelBtn" class="btn btn-outline" disabled>Descargar Excel</button>
             <button id="generatePdfBtn" class="btn btn-outline" disabled>Generar PDF</button>
           </div>
@@ -245,6 +246,62 @@
         <div id="loadingOverlayEvent" class="loading-overlay" hidden>
           <div class="loading-spinner"></div>
           <p>Cargando evento...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Listar Asistentes -->
+    <div id="listAttendeesModal" class="modal" hidden>
+      <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-header">
+          <h2>Lista de asistentes</h2>
+          <button type="button" class="modal-close" id="closeListAttendeesModal" aria-label="Cerrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="section-header" style="margin-bottom: 1rem;">
+            <div class="search-box" style="min-width: 220px;">
+              <input id="attendeesSearch" type="search" placeholder="Buscar asistentes..." />
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="m21 21-4.35-4.35m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9Z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+              <button id="filterAllAttendees" class="btn btn-small btn-primary">Todos</button>
+              <button id="filterArrivedAttendees" class="btn btn-small btn-outline">Llegaron</button>
+              <button id="filterNotArrivedAttendees" class="btn btn-small btn-outline">No llegaron</button>
+            </div>
+          </div>
+          <div class="table-wrapper" style="max-height: 500px; overflow-y: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Documento</th>
+                  <th>Nombre Completo</th>
+                  <th class="hide-mobile">Correo</th>
+                  <th class="hide-mobile">Teléfono</th>
+                  <th>Estado</th>
+                  <th class="hide-mobile">Empresa</th>
+                  <th>Firma</th>
+                </tr>
+              </thead>
+              <tbody id="attendeesTableBody">
+                <tr>
+                  <td colspan="7">Cargando asistentes...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" id="closeListAttendeesModalBtn">Cerrar</button>
+        </div>
+        <div id="loadingOverlayAttendees" class="loading-overlay" hidden>
+          <div class="loading-spinner"></div>
+          <p>Cargando asistentes...</p>
         </div>
       </div>
     </div>
