@@ -365,6 +365,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  const setDefaultValues = () => {
+    const eventDate = document.getElementById("eventDate");
+    const eventStartTime = document.getElementById("eventStartTime");
+    const eventEndTime = document.getElementById("eventEndTime");
+
+    // Establecer fecha actual si el campo está vacío
+    if (eventDate && !eventDate.value) {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      eventDate.value = `${year}-${month}-${day}`;
+    }
+
+    // Establecer hora de inicio a las 8:00 AM si está vacío
+    if (eventStartTime && !eventStartTime.value) {
+      eventStartTime.value = "08:00";
+    }
+
+    // Establecer hora de fin a las 6:00 PM si está vacío
+    if (eventEndTime && !eventEndTime.value) {
+      eventEndTime.value = "18:00";
+    }
+  };
+
   const resetForm = () => {
     eventForm.reset();
     editingEventId = null;
@@ -374,6 +399,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (eventMessage) {
       eventMessage.classList.add("hidden");
     }
+    // Establecer valores por defecto después de resetear
+    setDefaultValues();
   };
 
   const populateForm = (event) => {
@@ -651,6 +678,9 @@ document.addEventListener("DOMContentLoaded", () => {
     resetForm();
     setViewMode(false);
   });
+
+  // Establecer valores por defecto al cargar la página
+  setDefaultValues();
 
   fetchEvents();
 });
