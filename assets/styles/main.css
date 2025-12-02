@@ -1932,6 +1932,26 @@ article.glass-card form.attendance-form-layout {
   width: 100%;
 }
 
+.form-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+/* En pantallas grandes (992px+), los campos en form-field-row se muestran lado a lado */
+@media (min-width: 992px) {
+  .form-field-row {
+    flex-direction: row;
+    gap: 1rem;
+  }
+  
+  .form-field-row .form-field {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .form-field label {
   font-size: 0.9rem;
   color: var(--color-text);
