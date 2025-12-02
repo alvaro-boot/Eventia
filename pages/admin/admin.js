@@ -1378,41 +1378,71 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Obtener firma exactamente como en asistencia.js que funciona
+    let signatureBlob = null;
     let signatureBase64 = null;
+
     const signatureCanvasRegister = document.getElementById("signatureCanvasRegister");
     if (signatureCanvasRegister && signatureIsDirtyRegister) {
-      const signatureBlob = await getSignatureBlobRegister();
+      signatureBlob = await getSignatureBlobRegister();
       if (signatureBlob) {
         signatureBase64 = await blobToBase64(signatureBlob);
       }
     }
 
+    // Generar firmaNombre siempre (el backend lo requiere)
+    const firmaNombre = signatureBase64 
+      ? `firma_${formValues.numero_identificacion}_${Date.now()}.png`
+      : `sin_firma_${formValues.numero_identificacion}_${Date.now()}.png`;
+
     const submitData = new FormData();
+    // IMPORTANTE: Enviar firmaNombre PRIMERO para asegurar que el servidor lo reciba
+    submitData.append("firmaNombre", firmaNombre);
+    
     submitData.append("evento_id", selectedEventId);
     submitData.append("user_id", session.id);
     submitData.append("numero_identificacion", formValues.numero_identificacion);
     submitData.append("nombres", formValues.nombres);
     submitData.append("apellidos", formValues.apellidos);
-    submitData.append("correo_electronico", formValues.correo_electronico);
-    submitData.append("numero_celular", formValues.numero_celular);
-    submitData.append("cargo", formValues.cargo);
-    submitData.append("empresa", formValues.empresa);
+    submitData.append(
+      "correo_electronico",
+      formValues.correo_electronico || ""
+    );
+    submitData.append("numero_celular", formValues.numero_celular || "");
+    submitData.append("cargo", formValues.cargo || "");
+    submitData.append("empresa", formValues.empresa || "");
     submitData.append("invitado", formValues.invitado);
     submitData.append("asiste", "1");
     submitData.append("estado_id", "1");
-    
-    // El backend espera firmaNombre siempre, usar un valor por defecto cuando no hay firma
-    const firmaNombre = signatureBase64 
-      ? `firma_${formValues.numero_identificacion}_${Date.now()}.png`
-      : `sin_firma_${formValues.numero_identificacion}_${Date.now()}.png`;
-    
-    // Enviar firmaNombre siempre con un valor válido (no vacío)
-    submitData.append("firmaNombre", firmaNombre);
-    
-    // Enviar firma solo si existe
+
+    // Enviar firma solo si existe (como en asistencia.js que funciona)
     if (signatureBase64) {
       submitData.append("firma", signatureBase64);
     }
+
+    // LOGS DETALLADOS: Verificar TODO lo que se está enviando
+    console.log("=== INICIO LOGS DETALLADOS (ADMIN) ===");
+    console.log("1. Datos del formulario:", formValues);
+    console.log("2. Firma obtenida:", {
+      tieneFirma: !!signatureBase64,
+      firmaLength: signatureBase64 ? signatureBase64.length : 0,
+      firmaBase64: signatureBase64 ? signatureBase64.substring(0, 50) + "..." : null
+    });
+    console.log("3. firmaNombre generado:", firmaNombre);
+    console.log("4. Todas las claves del FormData:", Array.from(submitData.keys()));
+    console.log("5. Todos los valores del FormData:");
+    for (const [key, value] of submitData.entries()) {
+      const displayValue = key === "firma" && value ? 
+        `${value.substring(0, 50)}... (${value.length} caracteres)` : 
+        value;
+      console.log(`   - ${key}:`, displayValue);
+    }
+    console.log("6. Verificación específica de firmaNombre:");
+    const firmaNombreValue = submitData.get("firmaNombre");
+    console.log("   - submitData.get('firmaNombre'):", firmaNombreValue);
+    console.log("   - Tipo:", typeof firmaNombreValue);
+    console.log("   - Existe:", firmaNombreValue !== null && firmaNombreValue !== undefined);
+    console.log("=== FIN LOGS DETALLADOS (ADMIN) ===");
 
     if (loadingOverlayRegister) loadingOverlayRegister.hidden = false;
     if (submitAttendanceModalBtn) {

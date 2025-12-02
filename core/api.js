@@ -29,6 +29,13 @@ const API = (() => {
       finalHeaders.Authorization = `Bearer ${token}`;
     }
 
+    // Si el body es FormData, NO establecer Content-Type manualmente
+    // El navegador lo establecerá automáticamente con el boundary correcto
+    const isFormData = body instanceof FormData;
+    if (isFormData && finalHeaders["Content-Type"]) {
+      delete finalHeaders["Content-Type"];
+    }
+
     const options = {
       method,
       headers: finalHeaders,
@@ -36,6 +43,21 @@ const API = (() => {
 
     if (body !== undefined && body !== null) {
       options.body = body;
+    }
+
+    // LOGS: Verificar request antes de enviar
+    if (body instanceof FormData) {
+      console.log("=== REQUEST - LOGS FormData ===");
+      console.log("URL:", buildUrl(path));
+      console.log("Method:", method);
+      console.log("Headers:", finalHeaders);
+      console.log("Content-Type en headers:", finalHeaders["Content-Type"]);
+      console.log("Body es FormData:", body instanceof FormData);
+      
+      // Verificar firmaNombre una vez más
+      const firmaNombreCheck = body.get("firmaNombre");
+      console.log("firmaNombre en body (FormData):", firmaNombreCheck);
+      console.log("=== FIN REQUEST LOGS ===");
     }
 
     const response = await fetch(buildUrl(path), options);
@@ -196,11 +218,34 @@ const API = (() => {
       }),
     });
 
-  const registrarAsistencia = (eventoId, formData) =>
-    request(`/v1/registrar-asistencia/${eventoId}`, {
+  const registrarAsistencia = (eventoId, formData) => {
+    // LOGS: Verificar FormData antes de enviar
+    console.log("=== API.registrarAsistencia - LOGS ===");
+    console.log("Evento ID:", eventoId);
+    console.log("FormData es instancia de FormData:", formData instanceof FormData);
+    
+    // Verificar firmaNombre específicamente
+    if (formData instanceof FormData) {
+      const firmaNombreValue = formData.get("firmaNombre");
+      console.log("firmaNombre en FormData:", firmaNombreValue);
+      console.log("Todas las claves del FormData en API:", Array.from(formData.keys()));
+      
+      // Verificar todos los valores
+      console.log("Todos los valores del FormData en API:");
+      for (const [key, value] of formData.entries()) {
+        const displayValue = key === "firma" && value ? 
+          `${value.substring(0, 30)}... (${value.length} chars)` : 
+          value;
+        console.log(`  ${key}:`, displayValue);
+      }
+    }
+    console.log("=== FIN API.registrarAsistencia LOGS ===");
+    
+    return request(`/v1/registrar-asistencia/${eventoId}`, {
       method: "POST",
       body: formData,
     });
+  };
 
   const actualizarEstadoAsistencia = (eventoId, asistenciaId, estado) =>
     request(`/v1/actualizar-asistencia/${eventoId}/${asistenciaId}`, {
