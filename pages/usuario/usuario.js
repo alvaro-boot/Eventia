@@ -1449,7 +1449,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!filtered.length) {
-      attendeesTableBody.innerHTML = '<tr><td colspan="7">No se encontraron asistentes</td></tr>';
+      attendeesTableBody.innerHTML = '<tr><td colspan="10">No se encontraron asistentes</td></tr>';
       return;
     }
 
@@ -1458,17 +1458,21 @@ document.addEventListener("DOMContentLoaded", () => {
         const hasSignature = !!assist.firma;
         const statusColor = Number(assist.asiste) === 1 ? "#22c55e" : "#ef4444";
         const statusText = Number(assist.asiste) === 1 ? "Llegó" : "No llegó";
+        const isGuest = Number(assist.invitado) === 1;
         return `
           <tr>
             <td data-label="Documento">${assist.numero_identificacion || "—"}</td>
-            <td data-label="Nombre Completo">${assist.nombres || ""} ${assist.apellidos || ""}</td>
-            <td data-label="Correo" class="hide-mobile">${assist.correo_electronico || "—"}</td>
-            <td data-label="Teléfono" class="hide-mobile">${assist.numero_celular || "—"}</td>
+            <td data-label="Nombres">${assist.nombres || "—"}</td>
+            <td data-label="Apellidos">${assist.apellidos || "—"}</td>
+            <td data-label="Correo">${assist.correo_electronico || "—"}</td>
+            <td data-label="Teléfono">${assist.numero_celular || "—"}</td>
+            <td data-label="Cargo">${assist.cargo || "—"}</td>
+            <td data-label="Empresa">${assist.empresa || "—"}</td>
+            <td data-label="Invitado">${isGuest ? "Sí" : "No"}</td>
             <td data-label="Estado">
               <span class="status-indicator" style="background-color: ${statusColor}"></span>
               ${statusText}
             </td>
-            <td data-label="Empresa" class="hide-mobile">${assist.empresa || "—"}</td>
             <td data-label="Firma">${hasSignature ? '<span class="text-muted">Firmado</span>' : "—"}</td>
           </tr>
         `;

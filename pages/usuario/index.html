@@ -252,7 +252,7 @@
 
     <!-- Modal para Listar Asistentes -->
     <div id="listAttendeesModal" class="modal" hidden>
-      <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-content" style="max-width: 1400px; width: 95vw;">
         <div class="modal-header">
           <h2>Lista de asistentes</h2>
           <button type="button" class="modal-close" id="closeListAttendeesModal" aria-label="Cerrar">
@@ -275,22 +275,25 @@
               <button id="filterNotArrivedAttendees" class="btn btn-small btn-outline">No llegaron</button>
             </div>
           </div>
-          <div class="table-wrapper" style="max-height: 500px; overflow-y: auto;">
+          <div class="table-wrapper" style="max-height: 70vh; overflow-y: auto;">
             <table>
               <thead>
                 <tr>
                   <th>Documento</th>
-                  <th>Nombre Completo</th>
-                  <th class="hide-mobile">Correo</th>
-                  <th class="hide-mobile">Teléfono</th>
+                  <th>Nombres</th>
+                  <th>Apellidos</th>
+                  <th>Correo</th>
+                  <th>Teléfono</th>
+                  <th>Cargo</th>
+                  <th>Empresa</th>
+                  <th>Invitado</th>
                   <th>Estado</th>
-                  <th class="hide-mobile">Empresa</th>
                   <th>Firma</th>
                 </tr>
               </thead>
               <tbody id="attendeesTableBody">
                 <tr>
-                  <td colspan="7">Cargando asistentes...</td>
+                  <td colspan="10">Cargando asistentes...</td>
                 </tr>
               </tbody>
             </table>
