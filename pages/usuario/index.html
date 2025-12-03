@@ -275,7 +275,8 @@
               <button id="filterNotArrivedAttendees" class="btn btn-small btn-outline">No llegaron</button>
             </div>
           </div>
-          <div class="table-wrapper" style="max-height: 70vh; overflow-y: auto;">
+          <!-- Vista de tabla para desktop -->
+          <div class="table-wrapper attendees-table-desktop" style="max-height: 70vh; overflow-y: auto;">
             <table>
               <thead>
                 <tr>
@@ -297,6 +298,12 @@
                 </tr>
               </tbody>
             </table>
+          </div>
+          <!-- Vista de cards para móvil -->
+          <div class="attendees-cards-mobile" id="attendeesCardsContainer" style="max-height: 70vh; overflow-y: auto; display: none;">
+            <div class="attendees-cards-grid">
+              <!-- Las cards se renderizarán aquí -->
+            </div>
           </div>
         </div>
         <div class="modal-footer">

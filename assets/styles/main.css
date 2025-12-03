@@ -2999,3 +2999,117 @@ tbody tr:hover {
   }
 }
 
+/* Estilos para cards de asistentes en móvil */
+.attendees-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.attendee-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 16px;
+  padding: 1.25rem;
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(var(--blur-amount));
+  -webkit-backdrop-filter: blur(var(--blur-amount));
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.attendee-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(77, 106, 255, 0.15);
+}
+
+.attendee-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(77, 106, 255, 0.15);
+}
+
+.attendee-card-name {
+  flex: 1;
+}
+
+.attendee-card-name strong {
+  font-size: 1.1rem;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.attendee-card-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.attendee-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.attendee-card-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.attendee-card-field .field-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.attendee-card-field .field-value {
+  font-size: 0.95rem;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.attendee-card-field .field-value .status-indicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+}
+
+.attendee-card-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--color-text-light);
+  font-size: 1rem;
+}
+
+/* Mostrar tabla en desktop, cards en móvil */
+@media (min-width: 769px) {
+  .attendees-table-desktop {
+    display: block;
+  }
+  
+  .attendees-cards-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .attendees-table-desktop {
+    display: none;
+  }
+  
+  .attendees-cards-mobile {
+    display: block !important;
+  }
+}
+

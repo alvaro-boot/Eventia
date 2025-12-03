@@ -1377,6 +1377,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeListAttendeesModal = document.getElementById("closeListAttendeesModal");
   const closeListAttendeesModalBtn = document.getElementById("closeListAttendeesModalBtn");
   const attendeesTableBody = document.getElementById("attendeesTableBody");
+  const attendeesCardsContainer = document.getElementById("attendeesCardsContainer");
   const attendeesSearch = document.getElementById("attendeesSearch");
   const filterAllAttendees = document.getElementById("filterAllAttendees");
   const filterArrivedAttendees = document.getElementById("filterArrivedAttendees");
@@ -1424,7 +1425,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const renderAttendees = () => {
-    if (!attendeesTableBody) return;
+    if (!attendeesTableBody && !attendeesCardsContainer) return;
 
     let filtered = [...allAttendees];
 
@@ -1449,35 +1450,119 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!filtered.length) {
-      attendeesTableBody.innerHTML = '<tr><td colspan="10">No se encontraron asistentes</td></tr>';
+      if (attendeesTableBody) {
+        attendeesTableBody.innerHTML = '<tr><td colspan="10">No se encontraron asistentes</td></tr>';
+      }
+      if (attendeesCardsContainer) {
+        const cardsGrid = attendeesCardsContainer.querySelector('.attendees-cards-grid');
+        if (cardsGrid) {
+          cardsGrid.innerHTML = '<div class="attendee-card-empty">No se encontraron asistentes</div>';
+        }
+      }
       return;
     }
 
-    attendeesTableBody.innerHTML = filtered
-      .map((assist) => {
-        const hasSignature = !!assist.firma;
-        const statusColor = Number(assist.asiste) === 1 ? "#22c55e" : "#ef4444";
-        const statusText = Number(assist.asiste) === 1 ? "Llegó" : "No llegó";
-        const isGuest = Number(assist.invitado) === 1;
-        return `
-          <tr>
-            <td data-label="Documento">${assist.numero_identificacion || "—"}</td>
-            <td data-label="Nombres">${assist.nombres || "—"}</td>
-            <td data-label="Apellidos">${assist.apellidos || "—"}</td>
-            <td data-label="Correo">${assist.correo_electronico || "—"}</td>
-            <td data-label="Teléfono">${assist.numero_celular || "—"}</td>
-            <td data-label="Cargo">${assist.cargo || "—"}</td>
-            <td data-label="Empresa">${assist.empresa || "—"}</td>
-            <td data-label="Invitado">${isGuest ? "Sí" : "No"}</td>
-            <td data-label="Estado">
-              <span class="status-indicator" style="background-color: ${statusColor}"></span>
-              ${statusText}
-            </td>
-            <td data-label="Firma">${hasSignature ? '<span class="text-muted">Firmado</span>' : "—"}</td>
-          </tr>
-        `;
-      })
-      .join("");
+    // Renderizar tabla para desktop
+    if (attendeesTableBody) {
+      attendeesTableBody.innerHTML = filtered
+        .map((assist) => {
+          const hasSignature = !!assist.firma;
+          const statusColor = Number(assist.asiste) === 1 ? "#22c55e" : "#ef4444";
+          const statusText = Number(assist.asiste) === 1 ? "Llegó" : "No llegó";
+          const isGuest = Number(assist.invitado) === 1;
+          return `
+            <tr>
+              <td data-label="Documento">${assist.numero_identificacion || "—"}</td>
+              <td data-label="Nombres">${assist.nombres || "—"}</td>
+              <td data-label="Apellidos">${assist.apellidos || "—"}</td>
+              <td data-label="Correo">${assist.correo_electronico || "—"}</td>
+              <td data-label="Teléfono">${assist.numero_celular || "—"}</td>
+              <td data-label="Cargo">${assist.cargo || "—"}</td>
+              <td data-label="Empresa">${assist.empresa || "—"}</td>
+              <td data-label="Invitado">${isGuest ? "Sí" : "No"}</td>
+              <td data-label="Estado">
+                <span class="status-indicator" style="background-color: ${statusColor}"></span>
+                ${statusText}
+              </td>
+              <td data-label="Firma">${hasSignature ? '<span class="text-muted">Firmado</span>' : "—"}</td>
+            </tr>
+          `;
+        })
+        .join("");
+    }
+
+    // Renderizar cards para móvil
+    if (attendeesCardsContainer) {
+      const cardsGrid = attendeesCardsContainer.querySelector('.attendees-cards-grid');
+      if (cardsGrid) {
+        cardsGrid.innerHTML = filtered
+          .map((assist) => {
+            const hasSignature = !!assist.firma;
+            const statusColor = Number(assist.asiste) === 1 ? "#22c55e" : "#ef4444";
+            const statusText = Number(assist.asiste) === 1 ? "Llegó" : "No llegó";
+            const isGuest = Number(assist.invitado) === 1;
+            return `
+              <div class="attendee-card">
+                <div class="attendee-card-header">
+                  <div class="attendee-card-name">
+                    <strong>${assist.nombres || ""} ${assist.apellidos || ""}</strong>
+                  </div>
+                  <div class="attendee-card-status">
+                    <span class="status-indicator" style="background-color: ${statusColor}"></span>
+                    <span>${statusText}</span>
+                  </div>
+                </div>
+                <div class="attendee-card-body">
+                  <div class="attendee-card-field">
+                    <span class="field-label">Nombres:</span>
+                    <span class="field-value">${assist.nombres || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Apellidos:</span>
+                    <span class="field-value">${assist.apellidos || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Documento:</span>
+                    <span class="field-value">${assist.numero_identificacion || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Correo:</span>
+                    <span class="field-value">${assist.correo_electronico || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Teléfono:</span>
+                    <span class="field-value">${assist.numero_celular || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Cargo:</span>
+                    <span class="field-value">${assist.cargo || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Empresa:</span>
+                    <span class="field-value">${assist.empresa || "—"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Invitado:</span>
+                    <span class="field-value">${isGuest ? "Sí" : "No"}</span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Estado:</span>
+                    <span class="field-value">
+                      <span class="status-indicator" style="background-color: ${statusColor}"></span>
+                      ${statusText}
+                    </span>
+                  </div>
+                  <div class="attendee-card-field">
+                    <span class="field-label">Firma:</span>
+                    <span class="field-value">${hasSignature ? '<span class="text-muted">Firmado</span>' : "—"}</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+    }
   };
 
   const updateFilterButtons = () => {
