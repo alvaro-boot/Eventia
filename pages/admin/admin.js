@@ -1445,19 +1445,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!session) return;
 
     const formValues = {
-      numero_identificacion:
-        document.getElementById("attendeeDocumentModal")?.value.trim() || "",
-      nombres:
-        document.getElementById("attendeeFirstNameModal")?.value.trim() || "",
-      apellidos:
-        document.getElementById("attendeeLastNameModal")?.value.trim() || "",
-      correo_electronico:
-        document.getElementById("attendeeEmailModal")?.value.trim() || "",
-      numero_celular:
-        document.getElementById("attendeePhoneModal")?.value.trim() || "",
-      cargo: document.getElementById("attendeeRoleModal")?.value.trim() || "",
-      empresa:
-        document.getElementById("attendeeCompanyModal")?.value.trim() || "",
+      numero_identificacion: (
+        document.getElementById("attendeeDocumentModal")?.value || ""
+      ).trim(),
+      nombres: (
+        document.getElementById("attendeeFirstNameModal")?.value || ""
+      ).trim(),
+      apellidos: (
+        document.getElementById("attendeeLastNameModal")?.value || ""
+      ).trim(),
+      correo_electronico: (
+        document.getElementById("attendeeEmailModal")?.value || ""
+      ).trim(),
+      numero_celular: (
+        document.getElementById("attendeePhoneModal")?.value || ""
+      ).trim(),
+      cargo: (document.getElementById("attendeeRoleModal")?.value || "").trim(),
+      empresa: (
+        document.getElementById("attendeeCompanyModal")?.value || ""
+      ).trim(),
       invitado: document.getElementById("attendeeGuestModal")?.value || "0",
     };
 
@@ -1483,15 +1489,18 @@ document.addEventListener("DOMContentLoaded", () => {
     submitData.append("user_id", session.id);
     submitData.append(
       "numero_identificacion",
-      formValues.numero_identificacion
+      formValues.numero_identificacion || ""
     );
-    submitData.append("nombres", formValues.nombres);
-    submitData.append("apellidos", formValues.apellidos);
-    submitData.append("correo_electronico", formValues.correo_electronico);
-    submitData.append("numero_celular", formValues.numero_celular);
-    submitData.append("cargo", formValues.cargo);
-    submitData.append("empresa", formValues.empresa);
-    submitData.append("invitado", formValues.invitado);
+    submitData.append("nombres", formValues.nombres || "");
+    submitData.append("apellidos", formValues.apellidos || "");
+    submitData.append(
+      "correo_electronico",
+      formValues.correo_electronico || ""
+    );
+    submitData.append("numero_celular", formValues.numero_celular || "");
+    submitData.append("cargo", formValues.cargo || "");
+    submitData.append("empresa", formValues.empresa || "");
+    submitData.append("invitado", formValues.invitado || "0");
     submitData.append("asiste", "1");
     submitData.append("estado_id", "1");
 
